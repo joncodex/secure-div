@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background: #e9edf2;
+            font-family: 'Georgia', serif;
+        }
+
+        .certificate {
+            width: 1123px;
+            height: 794px;
+            margin: 20px auto;
+
+            /* THIS is the magic */
+            background: url('/static/cert-images/certificate-bg1.png') no-repeat center;
+            background-size: cover;
+
+            position: relative;
+            padding: 120px 100px;
+            box-sizing: border-box;
+            color: #333;
+        }
+
+        .certificate-container {
+            width: 1000px;
+            margin: 40px auto;
+            padding: 40px;
+            border: 15px solid #6a5acd;
+            background: white;
+            text-align: center;
+            position: relative;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 44px;
+            letter-spacing: 4px;
+            font-weight: 600;
+        }
+
+        .name {
+            text-align: center;
+            font-size: 42px;
+            margin: 30px 0;
+            font-weight: bold;
+        }
+
+        .text {
+            text-align: center;
+            font-size: 18px;
+            line-height: 1.8;
+            margin: 0 80px;
+        }
+
+        /*.title {*/
+        /*    font-size: 40px;*/
+        /*    letter-spacing: 2px;*/
+        /*    margin-bottom: 20px;*/
+        /*}*/
+
+        .subtitle {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        /*.name {*/
+        /*    font-size: 36px;*/
+        /*    font-weight: bold;*/
+        /*    margin: 20px 0;*/
+        /*}*/
+
+        .details {
+            font-size: 18px;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+
+        .footer {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .signatory {
+            text-align: center;
+            width: 200px;
+        }
+
+        .signature-img {
+            height: 50px;
+        }
+
+        .qr {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            text-align: center;
+        }
+
+        .qr img {
+            height: 100px;
+        }
+
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            height: 80px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="certificate-container">
+
+    <!-- Institution Logo -->
+    <img class="logo" th:src="${certificate.institutionLogo}" alt="Logo"/>
+
+    <!-- Title -->
+    <div class="title">GRADUATION CERTIFICATE</div>
+
+    <div class="subtitle">This is to certify that</div>
+
+    <!-- Student Name -->
+    <div class="name" th:text="${certificate.studentFullName}">
+        Student Name
+    </div>
+
+    <!-- Certificate Text -->
+    <div class="details">
+        Successfully completed all the requirements and is hereby awarded the degree of
+        <b th:text="${certificate.awardTitle}">Award</b>
+        in
+        <b th:text="${certificate.courseStudied}">Course</b>
+        with
+        <b th:text="${certificate.grade}">Grade</b>.
+
+        <br/><br/>
+
+        Issued by
+        <b th:text="${certificate.institutionName}">Institution</b>
+        on
+        <span th:text="${certificate.issueDate}">Date</span>.
+
+        <br/><br/>
+
+        Certificate ID:
+        <b th:text="${certificate.certificateId}">12345</b>
+    </div>
+
+    <!-- Footer (Signatures) -->
+    <div class="footer">
+
+        <div class="signatory">
+            <img class="signature-img" th:src="${certificate.signatureUrl1}" alt="Signature"/>
+            <div th:text="${certificate.signatoryName1}">Name 1</div>
+            <div th:text="${certificate.signatoryTitle1}">Title 1</div>
+        </div>
+
+        <div class="signatory">
+            <img class="signature-img" th:src="${certificate.signatureUrl2}" alt="Signature"/>
+            <div th:text="${certificate.signatoryName2}">Name 2</div>
+            <div th:text="${certificate.signatoryTitle2}">Title 2</div>
+        </div>
+
+    </div>
+
+    <!-- QR Code -->
+    <div class="qr">
+        <img th:src="${certificate.qrLink}" alt="QR Code"/>
+        <div style="font-size:12px;">Scan to verify</div>
+    </div>
+
+</div>
+
+</body>
+</html>

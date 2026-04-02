@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Graduation Certificate</title>
+
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Times New Roman", serif;}
+
+        body {
+            background-color: #d6e8f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'EB Garamond', serif;
+        }
+
+        .certificate-wrapper { padding: 24px; }
+
+        .certificate-outer {
+            background: #e8e8f8;
+            border: 3px solid #8080c0;
+            border-radius: 4px;
+            padding: 10px;
+            position: relative;
+            width: 800px;
+            box-shadow: 0 8px 40px rgba(80,80,160,0.18);
+        }
+
+        .corner {
+            position: absolute;
+            width: 64px;
+            height: 64px;
+            background:
+                    repeating-linear-gradient(45deg, #9090c8 0px, #9090c8 2px, transparent 2px, transparent 8px),
+                    repeating-linear-gradient(-45deg, #9090c8 0px, #9090c8 2px, transparent 2px, transparent 8px),
+                    #c8c8e8;
+            border: 2px solid #8080c0;
+        }
+        .corner.tl { top: 0; left: 0; border-radius: 3px 0 0 0; }
+        .corner.tr { top: 0; right: 0; border-radius: 0 3px 0 0; }
+        .corner.bl { bottom: 0; left: 0; border-radius: 0 0 0 3px; }
+        .corner.br { bottom: 0; right: 0; border-radius: 0 0 3px 0; }
+
+        .border-strip {
+            position: absolute;
+            background: repeating-linear-gradient(90deg, #9090c8 0px, #9090c8 2px, transparent 2px, transparent 10px);
+            border: 1px solid #a0a0d0;
+        }
+        .border-strip.top    { top: 0; left: 64px; right: 64px; height: 10px; }
+        .border-strip.bottom { bottom: 0; left: 64px; right: 64px; height: 10px; }
+        .border-strip.left   { left: 0; top: 64px; bottom: 64px; width: 10px; background: repeating-linear-gradient(180deg, #9090c8 0px, #9090c8 2px, transparent 2px, transparent 10px); }
+        .border-strip.right  { right: 0; top: 64px; bottom: 64px; width: 10px; background: repeating-linear-gradient(180deg, #9090c8 0px, #9090c8 2px, transparent 2px, transparent 10px); }
+
+        .certificate-inner {
+            background: #fafafa;
+            background-image:
+                    radial-gradient(circle at 30% 40%, rgba(160,160,220,0.08) 0%, transparent 60%),
+                    radial-gradient(circle at 70% 60%, rgba(160,160,220,0.08) 0%, transparent 60%);
+            border: 2px solid #a0a0d0;
+            margin: 10px;
+            padding: 48px 60px 40px;
+            text-align: center;
+            position: relative;
+            min-height: 440px;
+        }
+
+        .certificate-inner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                    repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(160,160,220,0.07) 28px, rgba(160,160,220,0.07) 30px),
+                    repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(160,160,220,0.07) 28px, rgba(160,160,220,0.07) 30px);
+            pointer-events: none;
+        }
+
+        .logo{
+            width: 100px;
+            height: 100px;
+            background-color: #fff;
+            border-radius:50%
+        }
+
+        .signature-img {
+            width:60px;
+            height:60px;
+            margin-bottom: 20px;
+        }
+
+        .cert-title {
+            font-family: 'Cinzel', serif;
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: #1a1a3a;
+            margin-bottom: 18px;
+            text-transform: uppercase;
+        }
+
+        .cert-subtitle {
+            font-size: 16px;
+            color: #555;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .cert-name {
+            font-family: 'EB Garamond', serif;
+            font-size: 46px;
+            font-weight: 600;
+            color: #1a1a3a;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+
+        .cert-body {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.7;
+            max-width: 520px;
+            margin: 0 auto 16px;
+        }
+
+        .cert-body strong { font-weight: 700; color: #1a1a3a; }
+
+        .cert-details {
+            font-size: 14px;
+            color: #444;
+            margin-bottom: 36px;
+            line-height: 1.6;
+        }
+
+        .cert-details strong { font-weight: 700; color: #1a1a3a; }
+
+        .divider {
+            width: 60%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #a0a0d0, transparent);
+            margin: 16px auto;
+        }
+
+        /* Signatures + QR row */
+        .signatures {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-top: 8px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sig-block {
+            text-align: center;
+            flex: 1;
+        }
+
+        .sig-line {
+            width: 140px;
+            height: 1px;
+            background: #555;
+            margin: 0 auto 6px;
+        }
+
+        .sig-name { font-size: 14px; font-weight: 700; color: #1a1a3a; }
+        .sig-title { font-size: 13px; color: #666; }
+
+        .sig-cursive {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 28px;
+            color: #2a2a4a;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2px;
+        }
+
+        /* Seal */
+        .seal {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            flex: 1;
+            padding-bottom: 4px;
+        }
+
+        .seal-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3a3a7a, #5a5aa0);
+            border: 3px solid #2a2a5a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(60,60,120,0.3);
+        }
+
+        .seal-inner {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px dashed rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .seal-letter { font-family: 'Cinzel', serif; font-size: 22px; font-weight: 900; color: white; line-height: 1; }
+        .seal-stars  { font-size: 7px; color: rgba(255,255,255,0.7); letter-spacing: 2px; margin-top: 2px; }
+        .seal-text-ring { font-size: 9px; color: rgba(255,255,255,0.6); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 2px; }
+
+        /* QR Code block */
+        .qr-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            padding-bottom: 4px;
+        }
+
+        .qr-box {
+            width: 72px;
+            height: 72px;
+            border: 2px solid #6060a0;
+            border-radius: 4px;
+            padding: 4px;
+            background: white;
+        }
+
+        .qr-box img {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .qr-label {
+            font-size: 10px;
+            color: #666;
+            margin-top: 5px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+
+
+    </style>
+
+</head>
+<body>
+
+<div class="certificate-wrapper"  th:object="${certificate}">
+    <div class="certificate-outer">
+
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+
+        <div class="border-strip top"></div>
+        <div class="border-strip bottom"></div>
+        <div class="border-strip left"></div>
+        <div class="border-strip right"></div>
+
+        <div class="certificate-inner">
+            <div>
+                <img class="logo" th:src="${certificate.logoUrl}" alt="Institution Logo" />
+            </div>
+
+            <h1 class="cert-title">Graduation Certificate</h1>
+            <p class="cert-subtitle">This is to certify that</p>
+            <div class="divider"></div>
+
+            <p class="cert-name" th:text="${certificate.firstName + ' ' + certificate.lastName}" >Samuel Gray</p>
+
+            <div class="divider"></div>
+
+            <p class="cert-body">
+                Successfully completed all the requirements and obligations prescribed by the
+                <span th:text="${certificate.institutionName}">Michigan State University College of Human Medicine</span>
+                and is hereby conferred the degree of
+                <strong th:text="${certificate.degree + ' in ' + certificate.course}">Bachelor of Science in Human Biology</strong>.
+            </p>
+
+            <p class="cert-details">
+                Given at <span th:text="${certificate.address}">East Lansing, Michigan</span>,
+                <strong>this <span th:text="${certificate.graduationDate}">05/12/2024</span>.</strong>
+                Certificate ID: <strong th:text="${certificate.certificateNumber}">3859374948</strong>.
+
+            </p>
+
+            <div class="signatures" th:each="signatory : ${certificate.signatory}">
+
+                <!-- Left: President -->
+                <div class="sig-block" th:if="${signatory != null}">
+                    <div class="sig-cursive" >
+                        <img class="signature-img" th:src="${signatory.signatureUrl}" alt="Signature" />
+                    </div>
+                    <div class="sig-line"></div>
+                    <div class="sig-name" th:text="${signatory.name}">Ralph Barnett</div>
+                    <div class="sig-title" th:text="${signatory.position}" >President of University</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
