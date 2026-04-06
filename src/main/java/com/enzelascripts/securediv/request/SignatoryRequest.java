@@ -21,7 +21,7 @@ public class SignatoryRequest {
     private String position;
 
     @NotNull(message = "Logo image is required")
-    @ValidFile(message = "Please provide a valid image (png, jpeg) less than 500MB")
+    @ValidFile(message = "Please provide a valid image (png, jpeg) less than 5MB")
     private MultipartFile signatureImage;
 
 }

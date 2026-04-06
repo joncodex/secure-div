@@ -11,4 +11,5 @@ public class SignatoryResponse {
     private String name;
     private String position;
     private String signatureUrl;
+
 }

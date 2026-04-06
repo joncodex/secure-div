@@ -51,13 +51,13 @@ public class Admins {
         System.out.println("I have got the file fingerprint.... going to upload to S3 now");
 
         //upload the PDF
-        s3Service.upload(bytes, cert.getCertificateNumber());
+        s3Service.uploadCertificate(bytes, cert.getCertificateNumber());
         System.out.println("I have uploaded the PDF to S3.... going to update the certificate now");
 
         //update and save the certificate object
         cert.setFingerprint(fingerprint);
         cert.setDownloadUrl(
-                s3Service.getDownloadUrl(cert.getCertificateNumber()));
+                s3Service.getCertificateDownloadUrl(cert.getCertificateNumber()));
         service.saveCertificate(cert);
         System.out.println("I have updated the certificate.... going to send the email now");
 

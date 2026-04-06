@@ -1,6 +1,6 @@
 package com.enzelascripts.securediv.service;
 
-import com.enzelascripts.securediv.config.R2StorageProperties;
+import com.enzelascripts.securediv.config.S3StorageProperties;
 import lombok.Cleanup;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,41 +24,91 @@ import java.time.Duration;
 @Slf4j
 public class S3Service {
     @Autowired
-    private R2StorageProperties r2;
+    private S3StorageProperties s3Storage;
     @Autowired
-    private S3Client s3;
+    private S3Client s3Client;
 
+//  ============================================ public methods ========================================================
 
+    public void revokeCertificateOnS3(String s3Key) {
 
-    public void revokeCertificateOnS3(String certificateNumber) {
-        String key = "certificates/" + certificateNumber + ".pdf";
-        s3.deleteObject(DeleteObjectRequest.builder()
-                .bucket(r2.getBucketName())
-                .key(key)
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+                .bucket(s3Storage.getBucketName())
+                .key(s3Key)
                 .build());
-        log.info("Revoked certificate {} from S3", certificateNumber);
+        log.info("Revoked certificate {} from S3", s3Key.split("/")[1]);
     }
 
-    public String getDownloadUrl(String certificateNumber) {
+    public String getCertificateDownloadUrl(String s3Key) {
 
-        String key = "certificates/" + certificateNumber + ".pdf";
+        return getPresignedDownloadUrl(s3Key);
+    }
 
+    public String getTranscriptDownloadUrl(String s3Key) {
+
+        return getPresignedDownloadUrl(s3Key);
+    }
+
+    public byte[] getLogoAsBytes(String s3Key) {
+
+        return getS3Object(s3Key);
+    }
+
+    public byte[] getSignatureAsBytes(String s3Key) {
+
+        return getS3Object(s3Key);
+    }
+
+    public byte[] getQrCodeAsBytes(String s3Key) {
+
+        return getS3Object(s3Key);
+    }
+
+    public void uploadCertificate(byte[] pdfBytes, String s3Key){
+
+        upload(pdfBytes, s3Key);
+    }
+
+    public void uploadTranscript(byte[] pdfBytes, String s3Key){
+
+        upload(pdfBytes, s3Key);
+    }
+
+    public void uploadLogo(byte[] imageBytes, String s3Key) {
+
+        upload(imageBytes, s3Key);
+    }
+
+    public void uploadSignature(byte[] imageBytes, String s3Key) {
+
+        upload(imageBytes, s3Key);
+    }
+
+    public void uploadQrCode(byte[] imageBytes, String s3Key) {
+
+        upload(imageBytes, s3Key);
+    }
+
+
+//  ============================================ helper methods ========================================================
+
+    private String getPresignedDownloadUrl(String key) {
         //build the presigner object
         @Cleanup
         S3Presigner presigner = S3Presigner.builder()
                 .region(Region.of("auto"))
-                .endpointOverride(URI.create(r2.getEndpoint()))
+                .endpointOverride(URI.create(s3Storage.getEndpoint()))
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(
-                                r2.getAccessKeyId(),
-                                r2.getSecretAccessKey()
+                                s3Storage.getAccessKeyId(),
+                                s3Storage.getSecretAccessKey()
                         ))
                 )
                 .build();
 
         //Build the request for the object to be downloaded
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(r2.getBucketName())
+                .bucket(s3Storage.getBucketName())
                 .key(key)
                 .build();
 
@@ -73,29 +123,29 @@ public class S3Service {
         PresignedGetObjectRequest presignedRequest =
                 presigner.presignGetObject(presignRequest);
 
-        // the url expires after 10 minutes
-        String downloadUrl = presignedRequest.url().toString();
-
-        //This Method accepts url,
-        //call the download url as a client
-        //hash the file downloaded
-        //compare the hash with the one in DB
-        //If all is good, return downloadUrl else throw fileCorrupted exception
-        return downloadUrl;
+        return presignedRequest.url().toString();
 
     }
 
-    public void upload(byte[] pdfBytes, String certificateNumber){
-
-        String key = "certificates/" + certificateNumber + ".pdf";
+    private void upload(byte[] pdfBytes, String s3Key){
 
         PutObjectRequest request = PutObjectRequest.builder()
-                .bucket(r2.getBucketName())
-                .key(key)
+                .bucket(s3Storage.getBucketName())
+                .key(s3Key)
                 .contentType("application/pdf")
                 .build();
 
-        s3.putObject(request, RequestBody.fromBytes(pdfBytes));
-        log.info("Uploaded a certificate {} to S3", certificateNumber);
+        s3Client.putObject(request, RequestBody.fromBytes(pdfBytes));
+        log.info("Uploaded a certificate {} to S3", s3Key.split("/")[1]);
+
     }
+
+    private byte[] getS3Object(String key){
+        return s3Client.getObjectAsBytes(GetObjectRequest.builder()
+                .bucket(s3Storage.getBucketName())
+                .key(key)
+                .build()).asByteArray();
+    }
+
+
 }

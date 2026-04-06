@@ -17,8 +17,7 @@ public class InstitutionRecord {
     // Institution details
     private String institutionName;
     private String address;
-    @Column(columnDefinition = "TEXT")
-    private String logoUrl;     // URL to logo image
+    private String s3Key;     // s3Key to logo image
     private String motto;
     private String email;
     private String phoneNumber;

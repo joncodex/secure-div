@@ -7,6 +7,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
 import java.net.URI;
 import java.util.Objects;
@@ -14,24 +15,28 @@ import java.util.Objects;
 @Component
 public class BeansConfig {
     @Autowired
-    private R2StorageProperties r2;
+    private S3StorageProperties s3Storage;
 
     @Bean
     public S3Client getS3Client(){
-
-        return S3Client.builder()
-                .region(Region.of("auto"))
-                .endpointOverride(URI.create(Objects.requireNonNull(r2).getEndpoint()))
+        S3ClientBuilder builder = S3Client.builder()
+                .endpointOverride(URI.create(s3Storage.getEndpoint()))
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(
-                                r2.getAccessKeyId(),
-                                r2.getSecretAccessKey()
-                        ))
-                )
-                .build();
-    }
+                                s3Storage.getAccessKeyId(),
+                                s3Storage.getSecretAccessKey())))
+                .region(Region.of(s3Storage.getRegion()));
 
+            // Conditionally apply path-style (only for MinIO)
+            if (s3Storage.isPathStyleEnabled()) {
+                builder.forcePathStyle(true);
+            }
 
-
+            return builder.build();
+        }
 
 }
+
+
+
+

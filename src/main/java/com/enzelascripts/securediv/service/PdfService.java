@@ -50,6 +50,8 @@ public class PdfService {
 
     @PreDestroy
     public void closeBrowser() {
+
+        //closes resources gracefully
         if (browser != null) browser.close();
         if (playwright != null) playwright.close();
     }

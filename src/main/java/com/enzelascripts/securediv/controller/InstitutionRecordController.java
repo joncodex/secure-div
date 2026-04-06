@@ -30,20 +30,12 @@ public class InstitutionRecordController {
 
     }
 
-    // Get current institution record
+    //get current institution record
     @GetMapping("/current")
     public ResponseEntity<InstitutionResponse> getCurrentInstitution() {
-        InstitutionRecord record = service.getCurrentInstitutionRecord();
-        InstitutionResponse response = InstitutionResponse.builder()
-                .institutionName(record.getInstitutionName())
-                .address(record.getAddress())
-                .logoUrl(record.getLogoUrl())
-                .motto(record.getMotto())
-                .email(record.getEmail())
-                .phoneNumber(record.getPhoneNumber())
-                .website(record.getWebsite())
-                .build();
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(
+                service.getCurrentInstitutionRecord());
     }
 
 }

@@ -14,11 +14,11 @@ public class CertificateResponse {
     private String lastName;
     private String degree;
     private String course;
-    private String qrCode;
-    private String logoUrl;
-    private String address;
     private String classOfDegree;
     private String institutionName;
+    private String address;
+    private String qrCode;
+    private String logoUrl;
 
     private LocalDate graduationDate;
 

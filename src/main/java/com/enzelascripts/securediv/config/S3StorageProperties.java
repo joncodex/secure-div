@@ -6,14 +6,17 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "r2")
+@ConfigurationProperties(prefix = "s3")
 @Getter
 @Setter
-public class R2StorageProperties {
+public class S3StorageProperties {
 
     private String endpoint;
     private String accessKeyId;
     private String secretAccessKey;
     private String bucketName;
+    private String region;
+    private boolean pathStyleEnabled = false; // default false for R2
+
 
 }

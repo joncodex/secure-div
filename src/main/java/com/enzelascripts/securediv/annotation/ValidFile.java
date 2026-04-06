@@ -14,7 +14,7 @@ import java.lang.annotation.*;
 public @interface ValidFile {
     String message() default "Invalid file";
     String[] allowedTypes() default {"image/png","image/jpeg"};
-    long maxSize() default 512_000;
+    long maxSize() default 512_0;
 
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

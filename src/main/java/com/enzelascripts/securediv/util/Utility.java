@@ -8,7 +8,6 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,9 +38,19 @@ public class Utility {
     @Value("${base-url}")
     public static String BASE_URL;
     public static final String CERTIFICATE_VERIFICATION_URL = BASE_URL+"/api/v1/certificates/verify";
+    public static final String TRANSCRIPT_VERIFICATION_URL = BASE_URL+"/api/v1/transcripts/verify";
 
 
 /// ========================================== public methods ==========================================================
+    public static byte[] getFileBytes(MultipartFile file){
+        try {
+            return file.getBytes();
+        } catch (IOException e) {
+            log.error("Failed to convert file to bytes", e);
+            throw new RuntimeException("Failed to convert file " + file.getName() + " to bytes");
+        }
+    }
+
     public static String generateQRCode(String verificationUrl) {
         int width = 200;
         int height = 200;
@@ -75,7 +84,7 @@ public class Utility {
             BufferedImage image = ImageIO.read(file.getInputStream());
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             assert mimeType != null;
-            ImageIO.write(image, mimeType.substring(mimeType.indexOf("/") + 1), baos);
+            ImageIO.write(image, mimeType.split("/")[1], baos);
             baos.flush();
             baos.close();
 
@@ -162,22 +171,6 @@ public class Utility {
 
         return !MessageDigest.isEqual(fileBytes, fileFingerprint);
 
-    }
-
-    public static byte[] convertHTMLtoBytes(String html) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-        try {
-            PdfRendererBuilder builder = new PdfRendererBuilder();
-            builder.withHtmlContent(html, null);
-            builder.toStream(baos);
-            builder.run();
-        } catch (IOException e) {
-            log.debug("Failed to convert HTML to bytes", e);
-            throw new OperationalException("Failed to convert HTML to bytes");
-        }
-
-        return baos.toByteArray();
     }
 
     public static String get12AlphaNumString() {

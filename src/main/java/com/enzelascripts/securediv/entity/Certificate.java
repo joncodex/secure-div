@@ -29,10 +29,6 @@ public class Certificate {
     private String degree;          // Bachelor of Science
     private String course;          // Geology
     private String classOfDegree;   // First-Class Honors
-    @Column(columnDefinition = "TEXT")
-    private String qrCode;
-    @Column(columnDefinition = "TEXT")
-    private String downloadUrl;     // On the object storage
 
     private LocalDate graduationDate;
 

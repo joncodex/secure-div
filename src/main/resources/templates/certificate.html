@@ -8,7 +8,7 @@
     <style>
         @page {
             size: A4;
-            margin: 20mm;
+            margin: 5mm;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Times New Roman", serif;}
 
@@ -225,9 +225,10 @@
         .qr-block {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            /*align-items: center;*/
             flex: 1;
             padding-bottom: 4px;
+            margin-top: 25px;
         }
 
         .qr-box {
@@ -248,7 +249,7 @@
         .qr-label {
             font-size: 10px;
             color: #666;
-            margin-top: 5px;
+            margin-top: 10px;
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
@@ -311,6 +312,25 @@
                     <div class="sig-name" th:text="${signatory.name}">Ralph Barnett</div>
                     <div class="sig-title" th:text="${signatory.position}" >President of University</div>
                 </div>
+            </div>
+
+            <div class="qr-block">
+<!--                <div class="seal">-->
+<!--                    <div class="seal-circle">-->
+<!--                        <div class="seal-inner">-->
+<!--                            <span class="seal-letter">S</span>-->
+<!--                            <span class="seal-stars">***</span>-->
+<!--                            <span class="seal-text-ring">CERTIFICATE</span>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+
+                <div class="qr-box">
+                    <img th:src="${certificate.qrCode}" alt="QR Code" />
+                    <p class="qr-label" > Scan to verify</p>
+
+                </div>
+
             </div>
 
         </div>

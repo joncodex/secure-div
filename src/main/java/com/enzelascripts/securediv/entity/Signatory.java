@@ -3,6 +3,7 @@ package com.enzelascripts.securediv.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
@@ -16,11 +17,12 @@ public class Signatory {
 
     private String name;
     private String position;
-    @Column(columnDefinition = "TEXT")
-    private String signatureUrl;
+    private String s3Key;
 
     private boolean current;        // current signatory
     private LocalDate createdAt;
     private LocalDate invalidatedAt;
+
+
  }
 
