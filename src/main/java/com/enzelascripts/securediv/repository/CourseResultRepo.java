@@ -16,4 +16,8 @@ public interface CourseResultRepo extends JpaRepository<CourseResult, Long> {
     void deleteByCourseCode(String courseCode);
 
     Optional<CourseResult> findCourseResultByCourseCode(String courseCode);
+
+    List<CourseResult> getCourseResultsByStudent_Id(Long studentId);
+
+    Optional<CourseResult>  findCourseResultByStudent_IdAndCourseCode(Long studentId, String courseCode);
 }

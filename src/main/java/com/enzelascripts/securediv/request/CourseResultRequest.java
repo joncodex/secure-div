@@ -29,12 +29,6 @@ public class CourseResultRequest {
     @Max(value = 100, message = "Score cannot be greater than 100")
     private int score;
 
-//    @Min(value = 0, message = "Grade must be at least 0")
-//    private double grade;
-//
-//    @Min(value = 0, message = "Grade point must be at least 0")
-//    private double gradePoint;
-
     @Min(value = 100, message = "100 Level is the first Level")
     private int level;
 
