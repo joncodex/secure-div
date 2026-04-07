@@ -26,20 +26,21 @@ import static com.enzelascripts.securediv.util.Utility.*;
 @Service
 public class InstitutionRecordService {
 
-///  ============================================== Fields ==================================================
+//  ============================================== Fields ==================================================
     @Autowired
     private InstitutionRecordRepo institutionRecordRepo;
     @Autowired
     private S3Service s3Service;
 
 
-    ///  ============================================== Public Methods ==========================================
+//  ============================================== Public Methods ==========================================
     @Transactional(timeout = 5)
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     public Map<String, Object> createInstitutionRecord(InstitutionRecordRequest dto) {
 
         InstitutionRecord newInstitutionRecord =
                 transferData(validateNotNull(dto), new InstitutionRecord());
+
         //create s3 key
         String specialName = dto.getInstitutionName() + "_" + LocalDate.now();
         String folderName = "logos";
@@ -50,7 +51,7 @@ public class InstitutionRecordService {
         //upload the signature file to s3
         MultipartFile logoImage = dto.getLogoImage();
         byte[] fileByte = getFileBytes(logoImage);
-        s3Service.uploadLogo (fileByte, s3Key);
+        s3Service.uploadLogo(fileByte, s3Key);
 
         //update the institution record object
         newInstitutionRecord.setS3Key(s3Key);
@@ -100,8 +101,8 @@ public class InstitutionRecordService {
 
     }
 
-// ========================================= helper Methods  =====================================================
 
+// ========================================= helper Methods  =====================================================
     private List<InstitutionRecord> getCurrentRecords() {
 
         return institutionRecordRepo.getInstitutionRecordsByCurrent(true);
@@ -113,7 +114,7 @@ public class InstitutionRecordService {
         byte[] logoBytes = s3Service.getLogoAsBytes(s3Key);
         String extension = s3Key.substring(s3Key.lastIndexOf('.'));
 
-        return  "data:" + extension + ";base64,"
+        return  "data:" + "image/" + extension + ";base64,"
                 + Base64.getEncoder().encodeToString(logoBytes);
     }
 

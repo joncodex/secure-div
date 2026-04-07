@@ -1,19 +1,17 @@
 package com.enzelascripts.securediv.service;
 
 import com.enzelascripts.securediv.entity.CourseResult;
-import com.enzelascripts.securediv.entity.Student;
-import com.enzelascripts.securediv.exception.BadInputException;
 import com.enzelascripts.securediv.exception.ResourceNotFoundException;
+import com.enzelascripts.securediv.record.Grade;
 import com.enzelascripts.securediv.repository.CourseResultRepo;
 import com.enzelascripts.securediv.repository.StudentRepo;
 import com.enzelascripts.securediv.request.CourseResultRequest;
 import com.enzelascripts.securediv.response.CourseResultResponse;
-import jakarta.persistence.EntityNotFoundException;
+import com.enzelascripts.securediv.util.GradeCalculator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,14 +31,11 @@ public class CourseResultService {
 //  ======================================= public methods ==================================================
     public CourseResultResponse createCourseResult(CourseResultRequest dto){
 
-        CourseResult courseResult = transferData(dto, new CourseResult());
-        Student student =  studentRepo.findStudentByStudentId(dto.getStudentId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException (
-                                "Student with id " + dto.getStudentId() + " does not exist")
-        );
-        courseResult.setStudent(student);
+        //Confirm that the student exists
+        boolean isStudentExist =  studentRepo.existsByStudentId(dto.getStudentId());
+        if(!isStudentExist) throw new ResourceNotFoundException("Student with ID: " + dto.getStudentId() + " not found");
 
+        CourseResult courseResult = transferData(dto, new CourseResult());
         courseResultRepo.save(courseResult);
 
         return transferData(courseResult, new CourseResultResponse());
@@ -49,43 +44,6 @@ public class CourseResultService {
     public List<CourseResult> getListOfNCourseResults(List<String> courseCodes) {
         return courseResultRepo
                 .findCourseResultsByCourseCodeIn(courseCodes);
-    }
-
-    public String compareCourseResultAndCourseCodes(List<CourseResultResponse> courseResultsResponse, List<String> courseCodes) {
-
-        //throw exception if the list of course results is null
-        if (courseResultsResponse == null)
-            throw new BadInputException("List of course results cannot be null");
-
-        //Inform about empty course result list
-        if (courseResultsResponse.isEmpty())
-            return "The Course Result list is empty.";
-
-        //inform about incomplete course result list if some initial course codes were invalid
-        List<String> invalidCourseCodes = new ArrayList<>();
-        if (courseResultsResponse.size() < courseCodes.size()){
-            invalidCourseCodes = courseCodes
-                    .stream()
-                    .filter(courseCode->
-                            courseResultsResponse
-                                    .stream()
-                                    .noneMatch(courseResult->
-                                            courseResult.getCourseCode()
-                                                    .equalsIgnoreCase(courseCode))
-                    ).toList();
-
-        }
-
-        //return list of all invalid course codes
-        return "Invalid Course Code(s): [" + invalidCourseCodes +
-                "] Enter the correct course codes to record these courses";
-    }
-
-    public CourseResult getCourseResultById(long id) {
-
-        return courseResultRepo.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Course result with id " + id + " not found")
-        );
     }
 
     public CourseResultResponse getCourseResultByCourseCode(String courseCode){
@@ -115,6 +73,38 @@ public class CourseResultService {
     };
 
 //  ======================================= helper methods ==================================================
+    private CourseResultResponse getCourseResultResponse(CourseResult result){
+
+        validateNotNull(result);
+        CourseResultResponse response = transferData(result, new CourseResultResponse());
+        response.setGradePoint(calculateGradePoint(7, result.getScore()));
+        response.setQualityPoint((response.getGradePoint() * response.getCourseUnit()));
+        
+        return response;
+        
+    }
+
+    private double calculateGradePoint(int cgpaScale, double score){
+
+        validateNotNull(cgpaScale);
+        validateNotNull(score);
+
+        if(cgpaScale <= 0 || score <= 0) return 0;
+        if(cgpaScale > 7 || score > 100) return 0;
+
+        GradeCalculator gradeCalculator = new GradeCalculator();
+        GradeCalculator.GradingScale grading = gradeCalculator.getScales().get(cgpaScale);
+
+        for (Map.Entry<Integer, Grade> entry : grading.getGradingScale().entrySet()) {
+            if (entry.getKey() <= score) {
+                return entry.getValue().point();
+            }
+        }
+
+        return 0;
+
+    }
+
 
     @NonNull
     private CourseResult getCourseResultFromDB(String courseCode) {

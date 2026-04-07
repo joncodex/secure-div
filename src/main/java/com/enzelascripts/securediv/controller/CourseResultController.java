@@ -1,18 +1,12 @@
 package com.enzelascripts.securediv.controller;
 
 import com.enzelascripts.securediv.request.CourseResultRequest;
-import com.enzelascripts.securediv.request.StudentRequest;
 import com.enzelascripts.securediv.response.CourseResultResponse;
-import com.enzelascripts.securediv.response.StudentResponse;
 import com.enzelascripts.securediv.service.CourseResultService;
-import com.enzelascripts.securediv.service.StudentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/course-results")

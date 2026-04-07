@@ -45,3 +45,13 @@ public class SignatoryController {
     }
 
 }
+
+
+
+
+//postman
+
+//POST /api/v1/signatories/create
+//name = John Doe
+//position = Registrar
+//signatureImage = [file upload]

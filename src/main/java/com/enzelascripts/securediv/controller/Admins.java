@@ -51,23 +51,16 @@ public class Admins {
         System.out.println("I have got the file fingerprint.... going to upload to S3 now");
 
         //upload the PDF
-        s3Service.uploadCertificate(bytes, cert.getCertificateNumber());
+        s3Service.uploadCertificate(bytes, cert.getS3Key());
         System.out.println("I have uploaded the PDF to S3.... going to update the certificate now");
 
         //update and save the certificate object
-        cert.setFingerprint(fingerprint);
-        cert.setDownloadUrl(
-                s3Service.getCertificateDownloadUrl(cert.getCertificateNumber()));
+        cert.setSha256Hash(fingerprint);
         service.saveCertificate(cert);
-        System.out.println("I have updated the certificate.... going to send the email now");
 
         //send the email to the student to download the certificate
         //perform on the background
         //emailService.send(studentEmail)
-
-        System.out.println("Download url: " + cert.getDownloadUrl());
-
-
 
         model.addAttribute("certificate", response);
         return "certificate";

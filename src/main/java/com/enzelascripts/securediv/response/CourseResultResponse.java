@@ -1,5 +1,6 @@
 package com.enzelascripts.securediv.response;
 
+import com.enzelascripts.securediv.entity.Student;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,14 +8,16 @@ import lombok.Setter;
 @Setter
 public class CourseResultResponse {
 
+    private Student studentId;
+
     private String courseCode;
     private String courseTitle;
 
-    private int creditUnit;
+    private int courseUnit;
     private int score;
 
-    private double grade;
     private double gradePoint;
+    private double qualityPoint;
 
     private int level;
 

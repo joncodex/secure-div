@@ -17,10 +17,12 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
@@ -52,7 +54,9 @@ public class CertificateService {
 
 // ============================================ public methods =========================================================
 
+    @Transactional(timeout = 5)
     public String createCertificate(CertificateRequest dto) {
+
         //create a certificate object
         validateNotNull(dto);
         Certificate certificate = createCertificateObject(dto);
@@ -65,7 +69,7 @@ public class CertificateService {
 
         //get the file fingerprint, update the certificate object
         String fingerprint = getFileFingerprint(bytes);
-        certificate.setFingerprint(fingerprint);
+        certificate.setSha256Hash(fingerprint);
 
         s3Service.uploadCertificate(bytes, certificate.getS3Key());
 
@@ -76,7 +80,7 @@ public class CertificateService {
         //perform on the background
         //emailService.send(studentEmail)
 
-        return s3Service.getCertificateDownloadUrl(certificate.getCertificateNumber());
+        return s3Service.getPresignedDownloadUrl(certificate.getS3Key());
     }
 
     public Certificate getCertificateByCertificateNumber(String certificateNumber) {
@@ -119,7 +123,6 @@ public class CertificateService {
 
         certificateRepo.save(certificate);
     }
-
 
 // ========================================== private methods ==========================================================
 

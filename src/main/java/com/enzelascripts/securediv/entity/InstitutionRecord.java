@@ -17,11 +17,12 @@ public class InstitutionRecord {
     // Institution details
     private String institutionName;
     private String address;
-    private String s3Key;     // s3Key to logo image
     private String motto;
     private String email;
     private String phoneNumber;
     private String website;
+    private String s3Key;     // s3Key to logo image
+
     private LocalDate createdAt;
     private LocalDate invalidatedAt;
 

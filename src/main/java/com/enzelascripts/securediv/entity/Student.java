@@ -25,9 +25,5 @@ public class Student {
 
     private LocalDate dateOfBirth;
 
-    @JsonBackReference
-    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
-    private List<CourseResult> courseResults;
-
 
 }

@@ -18,6 +18,4 @@ public class StudentResponse {
 
     private LocalDate dateOfBirth;
 
-    private List<CourseResultResponse> courseResultsResponse;
-
 }

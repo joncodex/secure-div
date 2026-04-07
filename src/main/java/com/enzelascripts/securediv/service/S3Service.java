@@ -36,7 +36,7 @@ public class S3Service {
                 .bucket(s3Storage.getBucketName())
                 .key(s3Key)
                 .build());
-        log.info("Revoked certificate {} from S3", s3Key.split("/")[1]);
+        log.info("Document {} has been deleted", s3Key.split("/")[1]);
     }
 
     public String getCertificateDownloadUrl(String s3Key) {
@@ -44,10 +44,10 @@ public class S3Service {
         return getPresignedDownloadUrl(s3Key);
     }
 
-    public String getTranscriptDownloadUrl(String s3Key) {
-
-        return getPresignedDownloadUrl(s3Key);
-    }
+//    public String getTranscriptDownloadUrl(String s3Key) {
+//
+//        return getPresignedDownloadUrl(s3Key);
+//    }
 
     public byte[] getLogoAsBytes(String s3Key) {
 
@@ -89,10 +89,7 @@ public class S3Service {
         upload(imageBytes, s3Key);
     }
 
-
-//  ============================================ helper methods ========================================================
-
-    private String getPresignedDownloadUrl(String key) {
+    public String getPresignedDownloadUrl(String s3Key) {
         //build the presigner object
         @Cleanup
         S3Presigner presigner = S3Presigner.builder()
@@ -109,7 +106,7 @@ public class S3Service {
         //Build the request for the object to be downloaded
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(s3Storage.getBucketName())
-                .key(key)
+                .key(s3Key)
                 .build();
 
         //config/set the presign request to get the object
@@ -126,6 +123,11 @@ public class S3Service {
         return presignedRequest.url().toString();
 
     }
+
+
+
+//  ============================================ helper methods ========================================================
+
 
     private void upload(byte[] pdfBytes, String s3Key){
 

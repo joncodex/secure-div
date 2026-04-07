@@ -1,5 +1,6 @@
 package com.enzelascripts.securediv.request;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,16 +21,19 @@ public class CourseResultRequest {
     private String courseTitle;
 
     @Min(value = 1, message = "Credit Unit must be at least 1")
-    private int creditUnit;
+    @NotNull(message = "course unit cannot be null")
+    private int courseUnit;
 
     @Min(value = 0, message = "Score must be at least 0")
+    @NotNull(message = "Score cannot be null")
+    @Max(value = 100, message = "Score cannot be greater than 100")
     private int score;
 
-    @Min(value = 0, message = "Grade must be at least 0")
-    private double grade;
-
-    @Min(value = 0, message = "Grade point must be at least 0")
-    private double gradePoint;
+//    @Min(value = 0, message = "Grade must be at least 0")
+//    private double grade;
+//
+//    @Min(value = 0, message = "Grade point must be at least 0")
+//    private double gradePoint;
 
     @Min(value = 100, message = "100 Level is the first Level")
     private int level;

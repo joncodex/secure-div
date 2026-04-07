@@ -13,7 +13,6 @@ public class CourseResult {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonManagedReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id")
     private Student student;
@@ -21,11 +20,8 @@ public class CourseResult {
     private String courseCode;
     private String courseTitle;
 
-    private int creditUnit;
+    private int courseUnit;
     private int score;
-
-    private double grade;
-    private double gradePoint;
 
     private int level;
 

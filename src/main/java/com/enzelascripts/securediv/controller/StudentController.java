@@ -19,7 +19,7 @@ public class StudentController {
 
     private final StudentService service;
 
-    // Create new signatory
+    // Create new student
     @PostMapping("/create")
     public ResponseEntity<Map<String, Object>> create(
             @Valid
@@ -28,14 +28,9 @@ public class StudentController {
 
         StudentResponse response = service.createStudent(dto);
 
-        String message = "Student created successfully";
-        String courseResultInfo = service.infoAboutCourseCodesProvided(
-                response.getCourseResultsResponse(), dto.getCourseCodes());
-
         Map<String, Object> responseMap = Map.of(
-                "message", message + "\n" + courseResultInfo,
-                "data", response
-        );
+                "message", "Student created successfully",
+                "data", response);
 
         return ResponseEntity.ok(responseMap);
 
@@ -45,44 +40,25 @@ public class StudentController {
     @GetMapping("/{studentId}")
     public ResponseEntity<StudentResponse> get(@PathVariable String studentId) {
 
-        StudentResponse response = service.getStudentAsResponse(studentId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.getStudentAsResponse(studentId));
     }
 
     // Get all students
     @GetMapping("/all-student")
     public ResponseEntity<List<StudentResponse>> getAll() {
 
-        List<StudentResponse> response = service.getAllStudents();
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/course-results/{studentId}")
-    public ResponseEntity<List<CourseResultResponse>> getCourseResults(
-            @PathVariable String studentId) {
-
-        return ResponseEntity.ok(service.getStudentCourseResults(studentId));
-    }
-
-    //update student courses
-    @PutMapping("/update-courses/{studentId}")
-    public ResponseEntity<StudentResponse> update(
-            @PathVariable String studentId,
-            @RequestBody List<String> courseCodes) {
-
-        StudentResponse response = service.updateStudentCourseResults(studentId, courseCodes);
-        return ResponseEntity.ok().body(response);
+        List<StudentResponse> responseList = service.getAllStudents();
+        return ResponseEntity.ok().body(responseList);
     }
 
     //update student
-    @PutMapping("/update/{studentId}")
+    @PutMapping("/update")
     public ResponseEntity<StudentResponse> update(
-            @PathVariable String studentId,
             @Valid
             @RequestBody
             StudentRequest dto) {
 
-        StudentResponse response = service.updateStudent(dto, studentId);
+        StudentResponse response = service.updateStudent(dto);
         return ResponseEntity.ok().body(response);
     }
 
@@ -91,7 +67,19 @@ public class StudentController {
     public ResponseEntity<Void> delete(@PathVariable String studentId) {
 
         service.deleteStudent(studentId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().build() ;
     }
 
 }
+
+
+//http://localhost:8080/api/v1/students/create
+//{
+//        "studentId": "MAT-2024-001",
+//        "firstName": "Chinedu",
+//        "lastName": "Okafor",
+//        "gender": "Male",
+//        "email": "chinedu.okafor@example.com",
+//        "phoneNumber": "+2348012345678",
+//        "dateOfBirth": "2000-05-15"
+//        }

@@ -14,37 +14,6 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Certificate {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(unique = true, nullable = false)
-    private String certificateNumber;
-
-    @OneToOne
-    @JoinColumn(name = "student_id")
-    private Student student;
-
-    private String degree;          // Bachelor of Science
-    private String course;          // Geology
-    private String classOfDegree;   // First-Class Honors
-
-    private LocalDate graduationDate;
-
-    @ManyToOne
-    @JoinColumn(name = "institution_record_id")
-    private InstitutionRecord institutionRecord;
-
-    @ManyToMany
-    @JoinTable(name = "certificate_signatory_id")
-    private List<Signatory> signatories;
-
-    private boolean isValid;
-
-    @Column(columnDefinition = "TEXT")
-    private String fingerprint;
-    private String s3Key;
-
+public class Certificate extends Document{
 
 }
