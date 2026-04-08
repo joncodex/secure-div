@@ -22,7 +22,6 @@ import static com.enzelascripts.securediv.util.Utility.validateNotNull;
 public class CourseResultService {
 
 //  ============================================== Fields ==================================================
-    private final int cgpaScale = 7;
     @Autowired
     private CourseResultRepo courseResultRepo;
     @Autowired
@@ -45,20 +44,26 @@ public class CourseResultService {
 
     }
 
-    public CourseResultResponse update(CourseResultRequest dto){
+    public CourseResultResponse update(String studentId, String courseCode, CourseResultRequest dto){
         validateNotNull(dto);
+        validateNotNull(studentId);
+        validateNotNull(courseCode);
 
-        Student student = getStudent(dto.getStudentId());
+        Student student = getStudent(studentId);
         Long id = student.getId();
-        CourseResult courseResult = getCourseResultByStudentIdAndCourseCode(id, dto.getCourseCode());
+        CourseResult courseResult = getCourseResultByStudentIdAndCourseCode(id, courseCode);
+
+        //ensure the dto has the correct studentId and courseCode
+        dto.setStudentId(studentId);
+        dto.setCourseCode(courseCode);
         transferData(dto, courseResult);
 
         return getCourseResultResponse(courseResult);
     }
 
-    public void delete(String StudentId, String courseCode){
+    public void delete(String studentId, String courseCode){
 
-        Student student = getStudent(StudentId);
+        Student student = getStudent(studentId);
         CourseResult courseResult = getCourseResultByStudentIdAndCourseCode(student.getId(), courseCode);
 
         courseResultRepo.delete(courseResult);
@@ -117,7 +122,7 @@ public class CourseResultService {
                         new ResourceNotFoundException("Student with ID: " + dto + " not found"));
     }
 
-    private double getGradePoint(double score){
+    private double getGradePoint(int score){
 
         return gradeCalculator.calculateGradePoint(score);
     }
@@ -134,10 +139,8 @@ public class CourseResultService {
 //  ======================================= inner classes ==================================================
     public class CourseResultSummary{
         private final List<CourseResult> courseResults;
+        private final List<CourseResultResponse> courseResultResponseList;
 
-        private double totalGradePoints = 0;
-
-        private int totalCourseUnits = 0;
         @Getter
         private final int cgpaScale = GradeCalculator.CGPA_SCALE;
 
@@ -146,6 +149,7 @@ public class CourseResultService {
         public CourseResultSummary(String studentId){
 
             this.courseResults = getCourseResultsByStudentId(studentId);
+            this.courseResultResponseList = getCourseResultResponseList();
         }
 
 
@@ -157,25 +161,29 @@ public class CourseResultService {
                     .toList();
         }
 
-        public double getTotalGradePoints() {
+        public double getTotalQualityPoints() {
 
-            for(CourseResultResponse result: getCourseResultResponseList())
-                totalGradePoints += result.getGradePoint();
+            return courseResultResponseList
+                    .stream()
+                    .mapToDouble(CourseResultResponse::getQualityPoint)
+                    .sum();
 
-            return totalGradePoints;
         }
 
         public double getCgpa() {
 
-            return (getTotalGradePoints() / getTotalCourseUnits());
+            int totalUnits = getTotalCourseUnits();
+            if(totalUnits == 0) return 0;
+
+            return Math.round(getTotalQualityPoints() / totalUnits * 100.0) / 100.0;
         }
 
         public int getTotalCourseUnits() {
 
-            for(CourseResultResponse result: getCourseResultResponseList())
-                totalCourseUnits += result.getCourseUnit();
-
-            return totalCourseUnits;
+            return courseResultResponseList
+                    .stream()
+                    .mapToInt(CourseResultResponse::getCourseUnit)
+                    .sum();
         }
 
         public String getClassOfDegree() {

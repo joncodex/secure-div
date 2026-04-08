@@ -7,10 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import static com.enzelascripts.securediv.util.Utility.validateNotNull;
 
@@ -30,42 +27,37 @@ public class GradeCalculator {
         initializeScales();
     }
 
-    public double calculateGradePoint(double score){
+    public double calculateGradePoint(int score){
 
         validateNotNull(score);
+        if(score < 0 || score > 100) return 0;
 
-        if(CGPA_SCALE <= 0 || score <= 0) return 0;
-        if(CGPA_SCALE > 7 || score > 100) return 0;
+        TreeMap<Integer, Grade> gradingScale =
+                validateNotNull(scales.get(CGPA_SCALE).gradingScale, "grade scale not found");
 
-        GradeCalculator gradeCalculator = new GradeCalculator();
-        GradingScale grading = gradeCalculator.getScales().get(CGPA_SCALE);
+        Map.Entry<Integer, Grade> entry =
+                validateNotNull(gradingScale.floorEntry(score), "grade not found");
 
-        for (Map.Entry<Integer, Grade> entry : grading.getGradingScale().entrySet()) {
-            if (entry.getKey() <= score) {
-                return entry.getValue().point();
-            }
-        }
-
-        return 0;
+        return entry.getValue().point();
 
     }
 
     public double calculateCGPA(List<CourseResult> courseResults){
 
-        double totalPoints = 0;
+        double totalQualityPoints = 0;
         int totalUnits = 0;
 
         for (CourseResult courseResult : courseResults) {
 
             double gradePoint = calculateGradePoint(courseResult.getScore());
 
-            totalPoints += gradePoint * courseResult.getCourseUnit();
+            totalQualityPoints += gradePoint * courseResult.getCourseUnit();
             totalUnits += courseResult.getCourseUnit();
         }
 
         if (totalUnits == 0) return 0;
 
-        return Math.round((totalPoints / totalUnits) * 100.0) / 100.0;
+        return Math.round((totalQualityPoints / totalUnits) * 100.0) / 100.0;
     }
 
     public String getClassOfDegree(double cgpa) {
@@ -128,11 +120,9 @@ public class GradeCalculator {
 
 
 //  =========================== inner class =====================================================
-    @Getter
-    @Setter
     @AllArgsConstructor
     public static class GradingScale {
-        private final Map<Integer, Grade> gradingScale;
+        private final TreeMap<Integer, Grade> gradingScale;
     }
 
 }

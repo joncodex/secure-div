@@ -1,6 +1,5 @@
 package com.enzelascripts.securediv.response;
 
-import com.enzelascripts.securediv.entity.Student;
 import lombok.Getter;
 import lombok.Setter;
 

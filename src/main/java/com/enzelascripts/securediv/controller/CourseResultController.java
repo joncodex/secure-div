@@ -51,11 +51,13 @@ public class CourseResultController {
             @ApiResponse(responseCode = "200", description = "Course updated successfully"),
             @ApiResponse(responseCode = "404", description = "Course not found")
     })
-    @PutMapping("/update")
+    @PutMapping("/{studentId}/{courseCode}")
     public ResponseEntity<CourseResultResponse> update(
+            @PathVariable String studentId,
+            @PathVariable String courseCode,
             @Valid @RequestBody CourseResultRequest dto) {
 
-        CourseResultResponse response = service.update(dto);
+        CourseResultResponse response = service.update(studentId, courseCode, dto);
         return ResponseEntity.ok(response);
     }
 
@@ -65,7 +67,9 @@ public class CourseResultController {
             @ApiResponse(responseCode = "404", description = "Course not found")
     })
     @DeleteMapping("/{studentId}/{courseCode}")
-    public ResponseEntity<Void> delete(@PathVariable String studentId, @PathVariable String courseCode) {
+    public ResponseEntity<Void> delete(
+            @PathVariable String studentId,
+            @PathVariable String courseCode) {
 
         service.delete(studentId, courseCode);
         return ResponseEntity.ok().build();
