@@ -297,13 +297,11 @@
             <p class="cert-details">
                 Given at <span th:text="${certificate.address}">East Lansing, Michigan</span>,
                 <strong>this <span th:text="${certificate.graduationDate}">05/12/2024</span>.</strong>
-                Certificate ID: <strong th:text="${certificate.certificateNumber}">3859374948</strong>.
+                Certificate ID: <strong th:text="${certificate.documentNumber}">0123456789</strong>.
 
             </p>
 
             <div class="signatures" th:each="signatory : ${certificate.signatory}">
-
-                <!-- Left: President -->
                 <div class="sig-block" th:if="${signatory != null}">
                     <div class="sig-cursive" >
                         <img class="signature-img" th:src="${signatory.signatureUrl}" alt="Signature" />
@@ -315,20 +313,9 @@
             </div>
 
             <div class="qr-block">
-<!--                <div class="seal">-->
-<!--                    <div class="seal-circle">-->
-<!--                        <div class="seal-inner">-->
-<!--                            <span class="seal-letter">S</span>-->
-<!--                            <span class="seal-stars">***</span>-->
-<!--                            <span class="seal-text-ring">CERTIFICATE</span>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-
                 <div class="qr-box">
                     <img th:src="${certificate.qrCode}" alt="QR Code" />
                     <p class="qr-label" > Scan to verify</p>
-
                 </div>
 
             </div>

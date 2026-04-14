@@ -10,9 +10,10 @@ import java.util.List;
 @DiscriminatorValue("TRANSCRIPT")
 @Getter
 @Setter
-@SuperBuilder
-@NoArgsConstructor
-@AllArgsConstructor
+//@SuperBuilder
+//@NoArgsConstructor
+//@AllArgsConstructor
+//@EqualsAndHashCode(callSuper = true)
 public class Transcript extends Document {
 
 }

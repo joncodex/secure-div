@@ -8,7 +8,6 @@ import com.enzelascripts.securediv.repository.StudentRepo;
 import com.enzelascripts.securediv.request.CourseResultRequest;
 import com.enzelascripts.securediv.response.CourseResultResponse;
 import com.enzelascripts.securediv.util.GradeCalculator;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,7 @@ public class CourseResultService {
 
 
 //  ======================================= public methods ==================================================
-    public CourseResultResponse createCourseResult(CourseResultRequest dto){
+    public String createCourseResult(CourseResultRequest dto){
 
         //Confirm that the student exists
         Student student = getStudent(dto.getStudentId());
@@ -40,7 +39,7 @@ public class CourseResultService {
         courseResult.setStudent(student);
         courseResultRepo.save(courseResult);
 
-        return getCourseResultResponse(courseResult);
+        return "Course result created";
 
     }
 
@@ -90,14 +89,9 @@ public class CourseResultService {
         return getCourseResultResponse(courseResult);
     }
 
-    public CourseResultSummary getCourseResultSummary(String studentId){
-
-        return new CourseResultSummary(studentId);
-    }
-
 
 //  ======================================= helper methods ===================================================
-    private CourseResultResponse getCourseResultResponse(CourseResult result){
+public CourseResultResponse getCourseResultResponse(CourseResult result){
 
         //null check
         validateNotNull(result);
@@ -137,61 +131,6 @@ public class CourseResultService {
 
 
 //  ======================================= inner classes ==================================================
-    public class CourseResultSummary{
-        private final List<CourseResult> courseResults;
-        private final List<CourseResultResponse> courseResultResponseList;
-
-        @Getter
-        private final int cgpaScale = GradeCalculator.CGPA_SCALE;
-
-
-//  ======================================= constructor ==================================================
-        public CourseResultSummary(String studentId){
-
-            this.courseResults = getCourseResultsByStudentId(studentId);
-            this.courseResultResponseList = getCourseResultResponseList();
-        }
-
-
-//  ======================================= getter methods ==================================================
-        public List<CourseResultResponse> getCourseResultResponseList() {
-
-            return courseResults.stream()
-                    .map(CourseResultService.this::getCourseResultResponse)
-                    .toList();
-        }
-
-        public double getTotalQualityPoints() {
-
-            return courseResultResponseList
-                    .stream()
-                    .mapToDouble(CourseResultResponse::getQualityPoint)
-                    .sum();
-
-        }
-
-        public double getCgpa() {
-
-            int totalUnits = getTotalCourseUnits();
-            if(totalUnits == 0) return 0;
-
-            return Math.round(getTotalQualityPoints() / totalUnits * 100.0) / 100.0;
-        }
-
-        public int getTotalCourseUnits() {
-
-            return courseResultResponseList
-                    .stream()
-                    .mapToInt(CourseResultResponse::getCourseUnit)
-                    .sum();
-        }
-
-        public String getClassOfDegree() {
-
-            return gradeCalculator.getClassOfDegree(getCgpa());
-        }
-
-    }
 
 
 }

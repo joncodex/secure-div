@@ -26,10 +26,9 @@ public class CourseResultController {
             @ApiResponse(responseCode = "400", description = "Validation error")
     })
     @PostMapping("/create")
-    public ResponseEntity<CourseResultResponse> create(
-            @Valid @RequestBody CourseResultRequest dto) {
+    public ResponseEntity<String> create(@Valid @RequestBody CourseResultRequest dto) {
 
-        CourseResultResponse response = service.createCourseResult(dto);
+        String response = service.createCourseResult(dto);
         return ResponseEntity.ok(response);
     }
 

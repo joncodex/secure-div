@@ -24,8 +24,8 @@ public class InstitutionRecordRequest {
     private String address;
 
     @NotNull(message = "Logo image is required")
-    @ValidFile(message = "The image size must be 5KB or less. JPEG/PNG only")
-    @Schema(type = "string", format = "binary", description = "Logo image (JPEG/PNG, max 5KB)")
+    @ValidFile(message = "The image size must be 0.5MB or less. JPEG/PNG only")
+    @Schema(type = "string", format = "binary", description = "Logo image (JPEG/PNG, max 500KB)")
     private MultipartFile logoImage;
 
     @Schema(example = "Knowledge for Service")

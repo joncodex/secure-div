@@ -13,8 +13,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidFile {
     String message() default "Invalid file";
-    String[] allowedTypes() default {"image/png","image/jpeg"};
-    long maxSize() default 512_0;
+    String[] allowedTypes() default {"image/png","image/jpeg", "image/jpg"};
+    long maxSize() default 512_000;
 
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 public class CertificateResponse {
-    private String certificateNumber;
+    private String documentNumber;
     private String firstName;
     private String lastName;
     private String degree;
@@ -24,7 +24,7 @@ public class CertificateResponse {
 
     private List<SignatoryResponse> signatory;
 
-    private boolean isValid;
+    private boolean isRevoked;
 
 
 }

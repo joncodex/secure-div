@@ -27,7 +27,7 @@ public class VerificationResponse {
     private String degree;
     private String course;
     private String classOfDegree;
-    private String cgpaDisplay;         // "5.3/7.0" or null for certificate
+    private String cgpaValue;         // "5.3"
     
     private LocalDate graduationDate;
     private String institutionName;
@@ -37,9 +37,8 @@ public class VerificationResponse {
     private LocalDateTime verifiedAt;   // When this verification occurred
     
     // Revocation info (if applicable)
-    private boolean revoked = false;
+    private boolean isRevoked;
     @Column(columnDefinition = "TEXT")
     private String revocationReason;
     private LocalDateTime revokedAt;
-    private String revokedBy;
 }

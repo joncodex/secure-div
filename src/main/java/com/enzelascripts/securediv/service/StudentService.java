@@ -1,12 +1,15 @@
 package com.enzelascripts.securediv.service;
 
+import com.enzelascripts.securediv.entity.CourseResult;
 import com.enzelascripts.securediv.entity.Student;
 import com.enzelascripts.securediv.exception.ResourceNotFoundException;
+import com.enzelascripts.securediv.repository.CourseResultRepo;
 import com.enzelascripts.securediv.repository.StudentRepo;
 import com.enzelascripts.securediv.request.StudentRequest;
 import com.enzelascripts.securediv.response.StudentResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,9 +22,11 @@ public class StudentService {
 //  ============================================== Fields ==================================================
     @Autowired
     private StudentRepo studentRepo;
+    @Autowired
+    private CourseResultRepo courseResultRepo;
 
 
-//  ===========================================public methods ===============================================
+    //  ===========================================public methods ===============================================
     public StudentResponse createStudent(StudentRequest dto) {
 
         // null check and transfer data
@@ -73,8 +78,18 @@ public class StudentService {
                                 "the student with ID: " + studentId + " was not found"));
     }
 
+    @Transactional
     public void deleteStudent(String studentId) {
 
+        //Get student's course results
+        Student student = getStudentByStudentId(studentId);
+        List<CourseResult> courseResultList = courseResultRepo
+                .getCourseResultsByStudent_Id(student.getId());
+
+        //delete them, to avoid orphaned course results
+        courseResultRepo.deleteAll(courseResultList);
+
+        //delete student
         studentRepo.deleteByStudentId(studentId);
     }
 

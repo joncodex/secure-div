@@ -24,6 +24,9 @@ public class AccessLog {
     @Column(nullable = false, length = 20)
     private String action;          // "VERIFY", "DOWNLOAD", "ISSUED"
 
+    private String name;
+    private String studentId;
+    private String requesterEmail;
     private String ipAddress;
     private String userAgent;
     private String principalUser;  // Who accessed (for tracking)
@@ -34,6 +37,6 @@ public class AccessLog {
     private boolean successful = true;
 
     @Column(columnDefinition = "TEXT")
-    private String notes;           // Error messages, etc.
+    private String purpose;           // reason for the request, etc.
 
 }

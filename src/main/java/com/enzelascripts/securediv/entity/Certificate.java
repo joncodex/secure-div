@@ -1,19 +1,22 @@
 package com.enzelascripts.securediv.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Setter
+@DiscriminatorValue("CERTIFICATE")
 @Getter
-@AllArgsConstructor
-@NoArgsConstructor
+@Setter
+
+//@Builder
+//@NoArgsConstructor
+//@AllArgsConstructor
+//@EqualsAndHashCode(callSuper = true)
 public class Certificate extends Document{
 
 }

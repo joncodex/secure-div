@@ -20,12 +20,12 @@ public class SignatoryController {
 
     // Create new signatory
     @PostMapping("/create")
-    public ResponseEntity<Map<String, Object>> createSignatory(
+    public ResponseEntity<String> createSignatory(
             @Valid
             @ModelAttribute
             SignatoryRequest dto) {
 
-        Map<String, Object> response = service.createSignatory(dto);
+        String response = service.createSignatory(dto);
         return ResponseEntity.ok(response);
 
     }

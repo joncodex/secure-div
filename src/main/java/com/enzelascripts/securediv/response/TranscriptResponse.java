@@ -9,7 +9,8 @@ import java.util.List;
 @Getter
 @Setter
 public class TranscriptResponse {
-    private String certificateNumber;
+    private String documentNumber;
+    private String studentId;
     private String firstName;
     private String lastName;
     private String degree;

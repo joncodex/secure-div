@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import static com.enzelascripts.securediv.util.Utility.getFileFingerprint;
 
 @Controller
-@RequestMapping("/admins/v1")
+@RequestMapping("api/v1/admins")
 public class Admins {
     @Autowired
     private CertificateService service;
@@ -26,14 +26,14 @@ public class Admins {
 
 
     //show me the certificate
-    @GetMapping("/certificates/{certificateNumber}")
+    @GetMapping("/certificates/{documentNumber}")
     public String show(
             @PathVariable
-            String certificateNumber,
+            String documentNumber,
             Model model){
 
         //get the certificate
-        Certificate cert =  service.getCertificateByCertificateNumber(certificateNumber);
+        Certificate cert =  service.getCertificateByDocumentNumber(documentNumber);
         CertificateResponse response = service.getCertificateResponseObject(cert);
         System.out.println("I have gotten the certificate.... going to html zone now");
 
@@ -51,7 +51,7 @@ public class Admins {
         System.out.println("I have got the file fingerprint.... going to upload to S3 now");
 
         //upload the PDF
-        s3Service.uploadCertificate(bytes, cert.getS3Key());
+        s3Service.uploadCertificate(bytes, cert.getS3Key(), "application/pdf");
         System.out.println("I have uploaded the PDF to S3.... going to update the certificate now");
 
         //update and save the certificate object

@@ -14,10 +14,10 @@ import java.util.List;
 @DiscriminatorColumn(name = "doc_type", discriminatorType = DiscriminatorType.STRING)
 @Getter
 @Setter
-@SuperBuilder
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+//@SuperBuilder
+//@NoArgsConstructor
+//@AllArgsConstructor
+//@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class Document {
 
     @Id
@@ -32,10 +32,10 @@ public abstract class Document {
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
 
-    @Column(nullable = false)
+//    @Column(nullable = false)
     private String degree;
 
-    @Column(nullable = false)
+//    @Column(nullable = false)
     private String course;
 
     private String classOfDegree;
@@ -45,6 +45,7 @@ public abstract class Document {
     @Column(nullable = false)
     private LocalDate graduationDate;
 
+    @Setter(AccessLevel.NONE)
     @Column(name = "doc_type", insertable = false, updatable = false)
     private String documentType;
 
@@ -65,21 +66,14 @@ public abstract class Document {
 
     @Column(nullable = false, length = 64)
     private String sha256Hash;
-
-    @Column(length = 64)
-    private String metadataSignature;
-
+    
     @Setter(AccessLevel.NONE)
     @Column(nullable = false, updatable = false)
     private LocalDateTime issuedAt;
 
-    @Column(nullable = false)
-    private LocalDateTime expiresAt;
+    private LocalDateTime expiresAt;    //when the download link expires
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    private boolean revoked = false;
+    private boolean isRevoked = false;
 
     @Column(columnDefinition = "TEXT")
     private String revocationReason;
@@ -90,10 +84,6 @@ public abstract class Document {
 
     @PrePersist
     public void prePersist() {
-        this.createdAt = LocalDateTime.now();
         this.issuedAt = LocalDateTime.now();
-        if (this.documentNumber == null) {
-            this.documentNumber = java.util.UUID.randomUUID().toString();
-        }
     }
 }

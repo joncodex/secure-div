@@ -1,6 +1,7 @@
 package com.enzelascripts.securediv.service;
 
 import com.enzelascripts.securediv.config.S3StorageProperties;
+import com.enzelascripts.securediv.util.Utility;
 import lombok.Cleanup;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,8 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import java.net.URI;
 import java.time.Duration;
 
+import static com.enzelascripts.securediv.util.Utility.PRESIGNED_DURATION;
+
 @Service
 @Slf4j
 public class S3Service {
@@ -29,8 +32,16 @@ public class S3Service {
     private S3Client s3Client;
 
 //  ============================================ public methods ========================================================
+    public void deleteCertificateOnS3(String s3Key) {
 
-    public void revokeCertificateOnS3(String s3Key) {
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+                .bucket(s3Storage.getBucketName())
+                .key(s3Key)
+                .build());
+        log.info("Document {} has been deleted", s3Key.split("/")[1]);
+    }
+
+    public void deleteTranscriptOnS3(String s3Key) {
 
         s3Client.deleteObject(DeleteObjectRequest.builder()
                 .bucket(s3Storage.getBucketName())
@@ -44,10 +55,10 @@ public class S3Service {
         return getPresignedDownloadUrl(s3Key);
     }
 
-//    public String getTranscriptDownloadUrl(String s3Key) {
-//
-//        return getPresignedDownloadUrl(s3Key);
-//    }
+    public String getTranscriptDownloadUrl(String s3Key) {
+
+        return getPresignedDownloadUrl(s3Key);
+    }
 
     public byte[] getLogoAsBytes(String s3Key) {
 
@@ -59,82 +70,70 @@ public class S3Service {
         return getS3Object(s3Key);
     }
 
-    public byte[] getQrCodeAsBytes(String s3Key) {
+    public void uploadCertificate(byte[] pdfBytes, String s3Key, String contentType){
 
-        return getS3Object(s3Key);
+        upload(pdfBytes, s3Key, contentType);
     }
 
-    public void uploadCertificate(byte[] pdfBytes, String s3Key){
+    public void uploadTranscript(byte[] pdfBytes, String s3Key, String contentType){
 
-        upload(pdfBytes, s3Key);
+        upload(pdfBytes, s3Key, contentType);
     }
 
-    public void uploadTranscript(byte[] pdfBytes, String s3Key){
+    public void uploadLogo(byte[] imageBytes, String s3Key, String contentType) {
 
-        upload(pdfBytes, s3Key);
+        upload(imageBytes, s3Key, contentType);
     }
 
-    public void uploadLogo(byte[] imageBytes, String s3Key) {
+    public void uploadSignature(byte[] imageBytes, String s3Key, String contentType) {
 
-        upload(imageBytes, s3Key);
-    }
-
-    public void uploadSignature(byte[] imageBytes, String s3Key) {
-
-        upload(imageBytes, s3Key);
-    }
-
-    public void uploadQrCode(byte[] imageBytes, String s3Key) {
-
-        upload(imageBytes, s3Key);
-    }
-
-    public String getPresignedDownloadUrl(String s3Key) {
-        //build the presigner object
-        @Cleanup
-        S3Presigner presigner = S3Presigner.builder()
-                .region(Region.of("auto"))
-                .endpointOverride(URI.create(s3Storage.getEndpoint()))
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(
-                                s3Storage.getAccessKeyId(),
-                                s3Storage.getSecretAccessKey()
-                        ))
-                )
-                .build();
-
-        //Build the request for the object to be downloaded
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(s3Storage.getBucketName())
-                .key(s3Key)
-                .build();
-
-        //config/set the presign request to get the object
-        GetObjectPresignRequest presignRequest =
-                GetObjectPresignRequest.builder()
-                        .signatureDuration(Duration.ofMinutes(10)) // expiry
-                        .getObjectRequest(getObjectRequest)
-                        .build();
-
-        //call the PresignedGetObjectRequest
-        PresignedGetObjectRequest presignedRequest =
-                presigner.presignGetObject(presignRequest);
-
-        return presignedRequest.url().toString();
+        upload(imageBytes, s3Key, contentType);
 
     }
-
 
 
 //  ============================================ helper methods ========================================================
+    private String getPresignedDownloadUrl(String s3Key) {
+    //build the presigner object
+    @Cleanup
+    S3Presigner presigner = S3Presigner.builder()
+            .region(Region.of("auto"))
+            .endpointOverride(URI.create(s3Storage.getEndpoint()))
+            .credentialsProvider(StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create(
+                            s3Storage.getAccessKeyId(),
+                            s3Storage.getSecretAccessKey()
+                    ))
+            )
+            .build();
 
+    //Build the request for the object to be downloaded
+    GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+            .bucket(s3Storage.getBucketName())
+            .key(s3Key)
+            .build();
 
-    private void upload(byte[] pdfBytes, String s3Key){
+    //config/set the presign request to get the object
+    GetObjectPresignRequest presignRequest =
+            GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(PRESIGNED_DURATION)) // expiry
+                    .getObjectRequest(getObjectRequest)
+                    .build();
+
+    //call the PresignedGetObjectRequest
+    PresignedGetObjectRequest presignedRequest =
+            presigner.presignGetObject(presignRequest);
+
+    return presignedRequest.url().toString();
+
+}
+
+    private void upload(byte[] pdfBytes, String s3Key, String contentType){
 
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(s3Storage.getBucketName())
                 .key(s3Key)
-                .contentType("application/pdf")
+                .contentType(contentType)
                 .build();
 
         s3Client.putObject(request, RequestBody.fromBytes(pdfBytes));
@@ -148,6 +147,5 @@ public class S3Service {
                 .key(key)
                 .build()).asByteArray();
     }
-
 
 }

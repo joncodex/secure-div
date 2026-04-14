@@ -37,6 +37,7 @@ public class Utility {
 /// ============================================ Fields ================================================================
     @Value("${base-url}")
     public static String BASE_URL;
+    public static final int PRESIGNED_DURATION = 15;
     public static final String CERTIFICATE_VERIFICATION_URL = BASE_URL+"/api/v1/certificates/verify";
     public static final String TRANSCRIPT_VERIFICATION_URL = BASE_URL+"/api/v1/transcripts/verify";
 
@@ -109,62 +110,6 @@ public class Utility {
         }
     }
 
-    public static byte[] downloadAsByteArray(S3Client s3, String s3Key, String bucketName) {
-
-        GetObjectRequest objectToGet = GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(s3Key)
-                .build();
-
-        try {
-            return s3.getObject(objectToGet).readAllBytes();
-        } catch (S3Exception | IOException e) {
-            log.error("Failed to download document from S3", e);
-            throw new DownloadException("Failed to download document " + s3Key + " from S3");
-        }
-
-    }
-
-    public static String uploadImageFile(MultipartFile file, S3Client s3Client, String bucketName) {
-        // 1. Validate the file
-        if (!Objects.requireNonNull(
-                file.getContentType()).startsWith("image/jpg")
-                || !file.getContentType().startsWith("image/jpeg")
-                || !file.getContentType().startsWith("image/png")
-                || file.isEmpty()) {
-
-            throw new BadInputException("Invalid file. File must be PNG or JPEG");
-        }
-
-        String extension = file.getContentType().split("/")[1] ;
-
-        // 2. Generate storage name
-        String date = String.valueOf(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
-        String key = "logo/logo." + date + "." + extension;
-
-        try {
-            // 3. Upload to S3
-            PutObjectRequest metadata = PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .contentLength(file.getSize())
-                    .key(key)
-                    .contentType(file.getContentType())
-                    .build();
-
-            RequestBody requestBody = RequestBody.fromBytes(file.getBytes());
-
-
-            s3Client.putObject(metadata, requestBody);
-
-        } catch (IOException e) {
-            log.error("Failed to upload file", e);
-            throw new RuntimeException("Failed to upload file", e);
-        }
-
-        // 4. Return storage key
-        return key;
-    }
-
     public static boolean isFileCorrupted(byte[] fileBytes, String fingerprint) {
 
         byte[] fileFingerprint = Base64.getDecoder().decode(fingerprint);
@@ -173,7 +118,7 @@ public class Utility {
 
     }
 
-    public static String get12AlphaNumString() {
+    public static String get12AlphaNumString(String initial4Letters) {
         Random random = new SecureRandom();
         long randomNum = random.nextLong(1_000_000, 10_000_000);
 
@@ -181,15 +126,10 @@ public class Utility {
 
         StringBuilder stringBuilder = new StringBuilder();
 
-        // for 5 random characters
-//        for (int i = 0; i < 5; i++) {
-//            char randomCharacter = alphabets.charAt(random.nextInt(alphabets.length()));
-//            stringBuilder.append(randomCharacter);
-//        }
-//        stringBuilder.insert(4, randomNum);
+        if(initial4Letters.length()>4) initial4Letters =
+                initial4Letters.substring(0, 4).toUpperCase();
 
-        //for 4 known characters and 1 random character
-        stringBuilder.append("FIPS");
+        stringBuilder.append(initial4Letters);
         stringBuilder.append(randomNum);
 
         char randomCharacter = alphabets.charAt(random.nextInt(alphabets.length()));
@@ -200,8 +140,8 @@ public class Utility {
 
     public static <U, T> T transferData(@NonNull U from, @NonNull T to) {
 
-        Field[] fromFields = from.getClass().getDeclaredFields();
-        Field[] toFields = to.getClass().getDeclaredFields();
+        List<Field> fromFields = getAllFields(from.getClass());
+        List<Field> toFields = getAllFields(to.getClass());
 
         for (Field fromField : fromFields) {
             fromField.setAccessible(true);
@@ -219,7 +159,8 @@ public class Utility {
                         if (value != null) {
 
                             //if a List, make your own copy of the List's content; instead of referencing it
-                            if(value instanceof List<?> list) value = new ArrayList<>((list));
+                            if(value instanceof List<?> list)
+                                value = new ArrayList<>((list));
 
                             //set the value of the target object
                             toField.set(to, value);
@@ -253,6 +194,17 @@ public class Utility {
             throw new NullPointerException(message);
 
         return Objects.requireNonNull(objectToValidate,() -> message );
+    }
+
+    private static List<Field> getAllFields(Class<?> type){
+        List<Field> listOfAllFields = new ArrayList<>();
+
+        while(type != null){
+            listOfAllFields.addAll(Arrays.asList(type.getDeclaredFields()));
+            type = type.getSuperclass();
+        }
+
+        return listOfAllFields;
     }
 
 

@@ -30,12 +30,12 @@ public class InstitutionRecordController {
             @ApiResponse(responseCode = "400", description = "Validation error")
     })
     @PostMapping("/create")
-    public ResponseEntity<Map<String, Object>> createInstitution(
+    public ResponseEntity<String> createInstitution(
             @Valid
             @ModelAttribute
             InstitutionRecordRequest dto) {
 
-        Map<String, Object> response = service.createInstitutionRecord(dto);
+        String response = service.createInstitutionRecord(dto);
         return ResponseEntity.ok(response);
 
     }

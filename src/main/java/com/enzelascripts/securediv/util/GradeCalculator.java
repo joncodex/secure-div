@@ -1,7 +1,6 @@
 package com.enzelascripts.securediv.util;
 
 import com.enzelascripts.securediv.entity.CourseResult;
-import com.enzelascripts.securediv.record.Grade;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

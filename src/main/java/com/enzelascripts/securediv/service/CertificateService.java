@@ -1,17 +1,17 @@
 package com.enzelascripts.securediv.service;
 
-import com.enzelascripts.securediv.repository.InstitutionRecordRepo;
-import com.enzelascripts.securediv.repository.SignatoryRepo;
-import com.enzelascripts.securediv.repository.StudentRepo;
+import com.enzelascripts.securediv.repository.*;
 import com.enzelascripts.securediv.request.CertificateRequest;
 import com.enzelascripts.securediv.entity.Certificate;
 import com.enzelascripts.securediv.entity.InstitutionRecord;
 import com.enzelascripts.securediv.entity.Signatory;
 import com.enzelascripts.securediv.entity.Student;
 import com.enzelascripts.securediv.exception.*;
-import com.enzelascripts.securediv.repository.CertificateRepo;
+import com.enzelascripts.securediv.request.DocumentDownloadRequest;
+import com.enzelascripts.securediv.request.DocumentRevocationRequest;
 import com.enzelascripts.securediv.response.CertificateResponse;
 import com.enzelascripts.securediv.response.SignatoryResponse;
+import com.enzelascripts.securediv.response.VerificationResponse;
 import com.enzelascripts.securediv.util.Utility;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
 
 import static com.enzelascripts.securediv.util.Utility.*;
 import static com.enzelascripts.securediv.util.Utility.validateNotNull;
@@ -34,7 +33,6 @@ import static com.enzelascripts.securediv.util.Utility.validateNotNull;
 @Service
 public class CertificateService {
 // =========================================== fields ==================================================================
-
     private final String verificationUrl = Utility.CERTIFICATE_VERIFICATION_URL;
 
     @Autowired
@@ -51,63 +49,93 @@ public class CertificateService {
     TemplateEngine templateEngine;
     @Autowired
     private PdfService pdfService;
+    @Autowired
+    private AccessLogService accessLogService;
+
 
 // ============================================ public methods =========================================================
-
-    @Transactional(timeout = 5)
-    public String createCertificate(CertificateRequest dto) {
+    @Transactional(timeout = 9)
+    public CertificateResponse createCertificate(CertificateRequest dto) {
 
         //create a certificate object
         validateNotNull(dto);
+        System.out.println("validate DTO: " + dto.getClass().toString());
+        System.out.println("Degree: " + dto.getDegree() +  " Course: " + dto.getCourse() + " GDATE: : " + dto.getGraduationDate());
         Certificate certificate = createCertificateObject(dto);
+        System.out.println("created certificate object");
+        System.out.println(certificate);
 
         //populate the HTML
         String html = getCertificateHTML(certificate);
+        System.out.println("html populate");
 
         //convert HTML to PDF bytes
         byte[] bytes = pdfService.generatePdf(html);
+        System.out.println("generate pdf");
 
         //get the file fingerprint, update the certificate object
         String fingerprint = getFileFingerprint(bytes);
         certificate.setSha256Hash(fingerprint);
+        System.out.println("document hash done: " + fingerprint);
 
-        s3Service.uploadCertificate(bytes, certificate.getS3Key());
+        s3Service.uploadCertificate(bytes, certificate.getS3Key(), "application/pdf");
+
+        System.out.println("doc uploaded");
 
         //save the certificate object
+        System.out.println(certificate);
+        System.out.println("about to save");
         saveCertificate(certificate);
+        System.out.println("save certificate");
 
-        //send the email to the student to download the certificate
-        //perform on the background
-        //emailService.send(studentEmail)
+        //email to the student the download url
+        EmailService.notifyStudent(certificate.getStudent());
 
-        return s3Service.getPresignedDownloadUrl(certificate.getS3Key());
+        System.out.println("return");
+        return getCertificateResponseObject(certificate);
     }
 
-    public Certificate getCertificateByCertificateNumber(String certificateNumber) {
+    public Certificate getCertificateByDocumentNumber(String documentNumber) {
 
-        validateNotNull(certificateNumber);
-        return certificateRepo.
-                findCertificateByCertificateNumber(certificateNumber).
+        validateNotNull(documentNumber);
+        return certificateRepo.getCertificateByDocumentNumber (documentNumber).
                 orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Certificate: " + certificateNumber + " not found"));
+                                "Certificate: " + documentNumber + " not found"));
     }
 
-    public boolean isCertificateValid(String certificateNumber) {
+    @Transactional
+    public void revokeCertificate(DocumentRevocationRequest r) {
 
-        validateNotNull(certificateNumber);
-        return getCertificateByCertificateNumber(certificateNumber).isValid();
-    }
+        validateNotNull(r);
+        String docNumber = r.getDocumentNumber();
 
-    public void revokeCertificate(String certificateNumber) {
+        //get the document
+        Certificate cert = getCertificateByDocumentNumber(docNumber);
 
-        validateNotNull(certificateNumber);
-        if(!isCertificateValid(certificateNumber))
+        if(cert.isRevoked())
             throw new OperationalException(
-                    "the Certificate: " + certificateNumber + " is already revoked");
+                    "the Certificate: " + docNumber + " is already revoked");
 
-        s3Service.revokeCertificateOnS3(certificateNumber);
-        revokeCertificateOnDB(certificateNumber);
+        //update revocation details
+        cert.setRevoked(true);
+        cert.setRevokedBy("adm");
+        cert.setRevokedAt(LocalDateTime.now());
+        cert.setRevocationReason(r.getReason());
+        saveCertificate(cert);
+
+        //delete from s3
+        if(r.isDeleteFromStorage())
+            s3Service.deleteCertificateOnS3(cert.getS3Key());
+
+        //email student
+        if(r.isNotifyStudent()){
+            String studentEmail = cert.getStudent().getEmail();
+            EmailService.notifyStudent(studentEmail, r.getNotificationMessage());
+        }
+
+        log.info("Revoked certificate {} from DB", docNumber);
+
     }
 
     public String getCertificateHTML(Certificate certificate) {
@@ -119,18 +147,92 @@ public class CertificateService {
         return templateEngine.process("certificate", context);
     }
 
-    public void saveCertificate(Certificate certificate) {
+    public void  saveCertificate(Certificate certificate) {
 
         certificateRepo.save(certificate);
     }
 
-// ========================================== private methods ==========================================================
+    public VerificationResponse verify(String documentNumber){
 
+        VerificationResponse response = new VerificationResponse();
+
+        Certificate certificate;
+        try {
+            certificate = getCertificateByDocumentNumber(documentNumber);
+        } catch (Exception e) {
+            response.setStatus("NOT_FOUND");
+            response.setMessage("Kindly confirm the document number and try again");
+            response.setVerifiedAt(LocalDateTime.now());
+
+            return response;
+        }
+
+        if(certificate.isRevoked()){
+
+            response.setStatus("REVOKED");
+            response.setMessage("This document was revoked by the issuing authority on " + certificate.getRevokedAt());
+            response.setVerifiedAt(LocalDateTime.now());
+
+            //transfer data
+            transferData(certificate, response);
+            transferData(certificate.getStudent(), response);
+            transferData(certificate.getInstitutionRecord(), response);
+
+            return response;
+
+        }
+
+        response.setStatus("VALID");
+        response.setMessage("This document is valid till this date " + LocalDate.now());
+        response.setVerifiedAt(LocalDateTime.now());
+
+        //transfer data
+        transferData(certificate, response);
+        transferData(certificate.getStudent(), response);
+        transferData(certificate.getInstitutionRecord(), response);
+
+        return response;
+
+    }
+
+    public CertificateResponse getCertificate(String documentNumber){
+
+        Certificate certificate = getCertificateByDocumentNumber(documentNumber);
+        return getCertificateResponseObject(certificate);
+    }
+
+    public String getCertificateDownloadUrl(DocumentDownloadRequest dto){
+        validateNotNull(dto);
+
+        //get the Document
+        String docNumber = validateNotNull(dto.getDocumentNumber());
+        Certificate cert = getCertificateByDocumentNumber(docNumber);
+
+        if(cert.isRevoked()) {
+            return "the certificate is revoked, therefore can not be downloaded. " +
+                    "Contact the authority for more details";
+        }
+
+        //register the request to AccessLog
+        accessLogService.logAccess(dto, "DOWNLOAD");
+
+        //set expiration for the link, save it
+        cert.setExpiresAt(LocalDateTime.now().plusMinutes(PRESIGNED_DURATION));
+        saveCertificate(cert);
+
+        return docNumber + s3Service.getCertificateDownloadUrl(cert.getS3Key());
+
+    }
+
+// ========================================== private methods ==========================================================
     private Certificate createCertificateObject(@NonNull CertificateRequest dto) {
 
         String studentId = validateNotNull(dto.getStudentId());
         String degree =    validateNotNull(dto.getDegree());
         String course =    validateNotNull(dto.getCourse());
+
+        System.out.println("inside create certificate obj");
+        System.out.println("Degree: " + dto.getDegree() +  " Course: " + dto.getCourse() + " GDATE: : " + dto.getGraduationDate());
 
         // get the actual student object, if exists
         Student student = studentRepo
@@ -143,15 +245,20 @@ public class CertificateService {
         //check if student has a certificate for same course and degree
         if(!isCertificateExist(id, degree, course)) {
             try {
+
                 //transfer data from DTO to certificate
                 Certificate certificate = transferData(dto, new Certificate());
 
+                System.out.println("after transfer");
+                System.out.println("Degree: " + certificate.getDegree() +  " Course: " + certificate.getCourse() + " GDATE: : " + certificate.getGraduationDate());
+
+
                 //generate unique Certificate ID, update the certificate object
-                String certificateNumber = generateCertificateNumber();
-                certificate.setCertificateNumber(certificateNumber);
+                String documentNumber = generateDocumentNumber();
+                certificate.setDocumentNumber(documentNumber);
 
                 //set the s3 key
-                String s3Key = "certificates" + "/" + certificateNumber + "." + "pdf";
+                String s3Key = "certificates" + "/" + documentNumber + ".pdf";
                 certificate.setS3Key(s3Key);
 
                 //set the student object
@@ -171,8 +278,8 @@ public class CertificateService {
                 certificate.setInstitutionRecord(institutionRecord);
                 certificate.setSignatories(currentSignatories);
 
-                //set the certificate validity
-                certificate.setValid(true);
+                //set the certificate revocation status
+                certificate.setRevoked(false);
 
                 return certificate;
 
@@ -188,6 +295,7 @@ public class CertificateService {
 
     @NonNull
     public CertificateResponse getCertificateResponseObject(Certificate certificate) {
+        System.out.println(certificate.getDegree() + "   " + certificate.getCourse());
         CertificateResponse response = transferData(certificate, new CertificateResponse());
 
         //transfer student first and last name
@@ -202,8 +310,10 @@ public class CertificateService {
                 .stream()
                 .map(s ->{
 
+                    String s3Key = s.getS3Key();
                     byte[] sigBytes = s3Service.getSignatureAsBytes(s.getS3Key());
-                    String sigImgUrl = Base64.getEncoder().encodeToString(sigBytes);
+                    String extension = s3Key.substring(s3Key.lastIndexOf("."));
+                    String sigImgUrl = "data:image/" + extension + ";base64," + Base64.getEncoder().encodeToString(sigBytes);
 
                     SignatoryResponse sigResponse =  new SignatoryResponse();
                     sigResponse.setName(s.getName());
@@ -218,13 +328,13 @@ public class CertificateService {
         response.setSignatory(signatoryResponse);
 
         //update qrcode and logoURL
-        String qrCode = generateQRCode(verificationUrl + "/" + certificate.getCertificateNumber());
+        String qrCode = generateQRCode(verificationUrl + "/" + certificate.getDocumentNumber());
         response.setQrCode(qrCode);
 
         String s3Key = institutionRecord.getS3Key();
         byte[] logoBytes = s3Service.getLogoAsBytes(s3Key);
         String extension = s3Key.substring(s3Key.lastIndexOf('.'));
-        String logoUrl = "data:" + "image/" + extension + ";base64," + Base64.getEncoder().encodeToString(logoBytes);
+        String logoUrl = "data:image/" + extension + ";base64," + Base64.getEncoder().encodeToString(logoBytes);
 
         response.setLogoUrl(logoUrl);
 
@@ -233,28 +343,18 @@ public class CertificateService {
 
     private boolean isCertificateExist(Long id, String degree, String course){
 
-        return certificateRepo.existsByStudent_IdAndDegreeAndCourse(id, degree, course);
+        return certificateRepo.existsByStudent_IdAndDegreeAndCourse (id, degree, course);
 
     }
 
-    private String generateCertificateNumber() {
+    private String generateDocumentNumber() {
         String certificateNumber = "";
 
         do{
-            certificateNumber = Utility.get12AlphaNumString();
-        }while (certificateRepo.existsByCertificateNumber(certificateNumber));
+            certificateNumber = Utility.get12AlphaNumString("CERT");
+        }while (certificateRepo.existsByDocumentNumber(certificateNumber));
 
         return certificateNumber;
-    }
-
-    private void revokeCertificateOnDB(String certificateNumber) {
-        Certificate certificate = certificateRepo.
-                findCertificateByCertificateNumber(certificateNumber).
-                orElseThrow(()->
-                        new ResourceNotFoundException("Certificate: " +certificateNumber+ " not found"));
-        certificate.setValid(false);
-        certificateRepo.save(certificate);
-        log.info("Revoked certificate {} from DB", certificateNumber);
     }
 
 

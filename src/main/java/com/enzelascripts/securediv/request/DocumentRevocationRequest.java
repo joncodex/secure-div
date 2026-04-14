@@ -8,6 +8,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DocumentRevocationRequest {
+
+    @NotBlank(message = "Document Number is required")
+    private String documentNumber;
     
     @NotBlank(message = "Revocation reason is required")
     private String reason;
@@ -15,7 +18,7 @@ public class DocumentRevocationRequest {
     @NotBlank(message = "Admin ID is required")
     private String revokedBy;           // Admin username/ID
     
-    private boolean notifyStudent = true;
+    private boolean notifyStudent = false;
     
     private String notificationMessage; // Custom message to student
     

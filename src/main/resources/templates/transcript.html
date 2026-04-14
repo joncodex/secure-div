@@ -80,83 +80,102 @@
             border-top: 1px solid #000;
         }
 
+        .signature-img {
+            width:60px;
+            height:60px;
+            margin-bottom: 20px;
+        }
+
+        .sig-cursive {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 28px;
+            color: #2a2a4a;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2px;
+        }
+
         .qr-section {
             text-align: center;
             margin-top: 40px;
         }
     </style>
 </head>
-<body>
+<body th:object="${transcript}">
 
 <!-- HEADER -->
 <div class="header">
-    <img th:src="@{${school.logoUrl}}" class="logo" alt="School Logo"/>
-    <div class="school-name" th:text="${school.name}">School Name</div>
-    <div th:text="${school.address}">School Address</div>
+    <img th:src="${transcript.logoUrl}" class="logo" alt="School Logo"/>
+    <div class="school-name" th:text="${transcript.institutionName}">School Name</div>
+    <div th:text="${transcript.address}">School Address</div>
     <div class="title">OFFICIAL ACADEMIC TRANSCRIPT</div>
 </div>
 
 <!-- STUDENT INFO -->
 <div class="info">
-    <p><strong>Student Name:</strong> <span th:text="${student.fullName}">Name</span></p>
-    <p><strong>Student ID:</strong> <span th:text="${student.id}">ID</span></p>
-    <p><strong>Date of Birth:</strong> <span th:text="${student.dob}">DOB</span></p>
-    <p><strong>Program:</strong> <span th:text="${student.program}">Program</span></p>
-    <p><strong>Admission Year:</strong> <span th:text="${student.admissionYear}">Year</span></p>
-    <p><strong>Graduation Year:</strong> <span th:text="${student.graduationYear}">Year</span></p>
+    <p><strong>Student Name:</strong> <span th:text="${transcript.firstName + ' ' + transcript.lastName}">Name</span></p>
+    <p><strong>Student ID:</strong> <span th:text="${transcript.studentId}">ID</span></p>
+<!--    <p><strong>Date of Birth:</strong> <span th:text="${student.dob}">DOB</span></p>-->
+    <p><strong>Degree:</strong> <span th:text="${transcript.degree}">Degree</span></p>
+    <p><strong>Course:</strong> <span th:text="${transcript.course}">Course</span></p>
+    <p><strong>Graduation Year:</strong> <span th:text="${transcript.graduationDate}">Year</span></p>
 </div>
 
 <!-- COURSES TABLE -->
-<table>
+<table th:object="${resultSummary}">
     <thead>
     <tr>
         <th>Course Code</th>
         <th>Course Title</th>
         <th>Credit</th>
         <th>Score (%)</th>
-        <th>Grade</th>
+
+<!--        <th>Grade</th>-->
         <th>Grade Point</th>
         <th>Quality Points</th>
         <th>Semester</th>
-        <th>Year</th>
+        <th>Session</th>
     </tr>
     </thead>
 
     <tbody>
     <!-- Example static rows (fallback/demo) -->
     <tr>
-        <td>CSC101</td><td>Intro to CS</td><td>3</td><td>85</td><td>A</td><td>4.0</td><td>12.0</td><td>First</td><td>2022</td>
+        <td>CSC101</td><td>Intro to CS</td><td>3</td><td>85</td> <td>4.0</td><td>12.0</td><td>First</td><td>2022</td>
     </tr>
     <tr>
-        <td>MTH101</td><td>Algebra</td><td>3</td><td>78</td><td>B+</td><td>3.3</td><td>9.9</td><td>First</td><td>2022</td>
+        <td>MTH101</td><td>Algebra</td><td>3</td><td>78</td> <td>3.3</td><td>9.9</td><td>First</td><td>2022</td>
     </tr>
     <tr>
-        <td>CSC102</td><td>Programming I</td><td>3</td><td>82</td><td>B</td><td>3.0</td><td>9.0</td><td>Second</td><td>2022</td>
+        <td>CSC102</td><td>Programming I</td><td>3</td><td>82</td> <td>3.0</td><td>9.0</td><td>Second</td><td>2022</td>
     </tr>
 
     <!-- Dynamic rows -->
-    <tr th:each="course : ${courseResults}">
+    <tr th:each="course : ${resultSummary.courseResultResponseList}">
         <td th:text="${course.courseCode}">CSC101</td>
         <td th:text="${course.courseTitle}">Title</td>
-        <td th:text="${course.credit}">3</td>
+        <td th:text="${course.courseUnit}">3</td>
         <td th:text="${course.score}">85</td>
-        <td th:text="${course.grade}">A</td>
         <td th:text="${course.gradePoint}">4.0</td>
-        <td th:text="${course.qualityPoints}">12.0</td>
+        <td th:text="${course.qualityPoint}">12.0</td>
+<!--        <td th:text="${course.level}">2022</td>-->
         <td th:text="${course.semester}">First</td>
-        <td th:text="${course.year}">2022</td>
+        <td th:text="${course.session}">2022</td>
     </tr>
     </tbody>
 </table>
 
 <!-- SUMMARY -->
 <div class="section-title">Academic Summary</div>
-<p><strong>Total Credits:</strong> <span th:text="${summary.totalCredits}">0</span></p>
-<p><strong>Total Quality Points:</strong> <span th:text="${summary.totalQualityPoints}">0</span></p>
-<p><strong>Cumulative GPA:</strong> <span th:text="${summary.gpa}">0.00</span></p>
+<p><strong>Total Credits:</strong> <span th:text="${resultSummary.totalCourseUnits}">0</span></p>
+<p><strong>Total Quality Points:</strong> <span th:text="${resultSummary.totalQualityPoints}">0</span></p>
+<p><strong>Cumulative GPA:</strong> <span th:text="${resultSummary.cgpa}">0.00</span></p>
 
 <!-- GPA SCALE -->
-<div class="section-title">Grading System (4.0 Scale)</div>
+<div class="section-title" th:text="${resultSummary.cgpaScale}" >Grading System (4.0 Scale)</div>
 <table>
     <thead>
     <tr>
@@ -181,17 +200,32 @@
 </div>
 
 <!-- SIGNATORIES -->
-<div class="signatories">
-    <div class="sign-box" th:each="sig : ${signatories}">
+<div class="signatories" >
+    <div class="sign-box" th:each="sig : ${transcript.signatory}">
+        <div class="sig-cursive" >
+            <img  class="signature-img" th:src="${sig.signatureUrl}" alt="Signature Img" />
+        </div>
         <div class="sign-line"></div>
-        <span th:text="${sig.role}">Registrar</span>
+        <span th:text="${sig.position}">Registrar</span>
+        <p th:text="${sig.name}">Registrar</p>
+
     </div>
 </div>
 
-<script th:inline="javascript">
-    let verificationUrl = [[${verificationUrl}]];
-    QRCode.toCanvas(document.getElementById('qrcode'), verificationUrl);
-</script>
+
+<div class="signatures" th:each="signatory : ${certificate.signatory}">
+    <div class="sig-block" th:if="${signatory != null}">
+        <div class="sig-cursive" >
+            <img class="signature-img" th:src="${signatory.signatureUrl}" alt="Signature" />
+        </div>
+        <div class="sig-line"></div>
+        <div class="sig-name" th:text="${signatory.name}">Ralph Barnett</div>
+        <div class="sig-title" th:text="${signatory.position}" >President of University</div>
+    </div>
+
+</div>
+
+<img th:src="${transcript.qrCode}" alt="QRCODE" />
 
 </body>
 </html>

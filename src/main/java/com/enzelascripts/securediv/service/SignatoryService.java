@@ -14,10 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static com.enzelascripts.securediv.util.Utility.*;
 import static com.enzelascripts.securediv.util.Utility.transferData;
@@ -36,22 +33,25 @@ public class SignatoryService {
 //  ============================================== Public Methods ==========================================
     @Transactional(timeout = 5)
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    public Map<String, Object> createSignatory(SignatoryRequest dto) {
+    public String createSignatory(SignatoryRequest dto) {
 
         Signatory signatory =
                 transferData(validateNotNull(dto), new Signatory());
 
         //create s3 key
         String specialName = dto.getName() + "_" + LocalDate.now();
-        String folderName = "signatures";
-        String extension = Objects.requireNonNull(dto.getSignatureImage().getContentType()).split("/")[1];
+        String contentType = Objects.requireNonNull(dto.getSignatureImage().getContentType());
+        String extension = contentType.split("/")[1];
 
-        String s3Key = folderName + "/" + specialName + "." + extension;
+        String s3Key = "signatures/" + specialName + "." + extension;
 
         //upload the signature file to s3
         MultipartFile signatureImage = dto.getSignatureImage();
+
         byte[] fileByte = getFileBytes(signatureImage);
-        s3Service.uploadSignature(fileByte, s3Key);
+
+        System.out.println(Arrays.toString(fileByte));
+        s3Service.uploadSignature(fileByte, s3Key, contentType);
 
         //update the signatory object
         signatory.setS3Key(s3Key);
@@ -66,10 +66,7 @@ public class SignatoryService {
                 .signatureUrl(convertToBase64ImageUrl(signatureImage))
                 .build();
 
-        return Map.of(
-                "message", "Signatory created successfully",
-                "data", response
-        );
+        return "Signatory created successfully";
 
     }
 
@@ -109,7 +106,7 @@ public class SignatoryService {
         byte[] signatureBytes = s3Service.getSignatureAsBytes(s3Key);
         String extension = s3Key.substring(s3Key.lastIndexOf('.'));
 
-        return  "data:" + "image/" + extension + ";base64,"
+        return  "data:image/" + extension + ";base64,"
                 + Base64.getEncoder().encodeToString(signatureBytes);
     }
 

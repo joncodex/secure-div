@@ -1,16 +1,21 @@
 package com.enzelascripts.securediv.controller;
 
 import com.enzelascripts.securediv.entity.Certificate;
+import com.enzelascripts.securediv.entity.Transcript;
 import com.enzelascripts.securediv.exception.StaleLinkException;
 import com.enzelascripts.securediv.request.CertificateRequest;
 import com.enzelascripts.securediv.request.DocumentDownloadRequest;
 import com.enzelascripts.securediv.request.DocumentRevocationRequest;
+import com.enzelascripts.securediv.request.TranscriptRequest;
 import com.enzelascripts.securediv.response.CertificateResponse;
+import com.enzelascripts.securediv.response.TranscriptResponse;
 import com.enzelascripts.securediv.response.VerificationResponse;
 import com.enzelascripts.securediv.service.CertificateService;
 import com.enzelascripts.securediv.service.EmailService;
+import com.enzelascripts.securediv.service.TranscriptService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.flywaydb.database.postgresql.TransactionalModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,35 +26,35 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 
 @RestController
-@RequestMapping("/api/v1/certificates")
+@RequestMapping("/api/v1/transcripts")
 @RequiredArgsConstructor
-public class CertificateController {
+public class TranscriptController {
 
-    private final CertificateService service;
+    private final TranscriptService service;
 
-    // Create a new certificate
+    // Create a new transcript
     @PostMapping("/create")
-    public ResponseEntity<CertificateResponse> create(
+    public ResponseEntity<TranscriptResponse> create(
             @Valid
             @RequestBody
-            CertificateRequest dto) {
+            TranscriptRequest dto) {
 
-        return ResponseEntity.ok(service.createCertificate(dto));
+        return ResponseEntity.ok(service.createTranscript(dto));
 
     }
 
-    //Get a certificate
+    //Get a transcript
     @GetMapping("/{documentNumber}")
-    public ResponseEntity<CertificateResponse> get(
+    public ResponseEntity<TranscriptResponse> get(
             @PathVariable
             String documentNumber) {
 
-        CertificateResponse response = service.getCertificate(documentNumber);
+        TranscriptResponse response = service.getTranscript(documentNumber);
         return ResponseEntity.ok(response);
     }
 
 
-    //verify a certificate
+    //verify a transcript
     @GetMapping("/verify/{documentNumber}")
     public ResponseEntity<VerificationResponse> verify(
             @PathVariable
@@ -63,9 +68,9 @@ public class CertificateController {
     @PostMapping("/download")
     public ResponseEntity<String> download(@RequestBody DocumentDownloadRequest dto){
 
-        String s3DownloadUrl = service.getCertificateDownloadUrl(dto);
+        String s3DownloadUrl = service.getTranscriptDownloadUrl(dto);
         String token = Base64.getEncoder().encodeToString(s3DownloadUrl.getBytes());
-        String downloadUrl = "/api/v1/certificates/download/" + token;
+        String downloadUrl = "/api/v1/transcripts/download/" + token;
 
         //email download url to the right email address
         EmailService.notifyStudent(dto.getCompanyEmail(), downloadUrl);
@@ -81,10 +86,10 @@ public class CertificateController {
         String downloadUrl = new String(downloadUrlBytes, StandardCharsets.UTF_8);
 
         String docNumber = downloadUrl.substring(0,11);
-        Certificate cert = service.getCertificateByDocumentNumber(docNumber);
+        Transcript trans = service.getTranscriptByDocumentNumber(docNumber);
 
         //only run if link has expired
-        if(cert.getExpiresAt().isBefore(LocalDateTime.now()))
+        if(trans.getExpiresAt().isBefore(LocalDateTime.now()))
             throw new StaleLinkException("the link has expired. Request another one");
 
         return ResponseEntity
@@ -100,7 +105,7 @@ public class CertificateController {
             @RequestBody
             DocumentRevocationRequest revoke) {
 
-        service.revokeCertificate(revoke);
+        service.revokeTranscript(revoke);
         return ResponseEntity.ok().build();
     }
 

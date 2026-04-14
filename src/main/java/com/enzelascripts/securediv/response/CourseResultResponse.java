@@ -23,3 +23,4 @@ public class CourseResultResponse {
     private String semester;
     private String session;
 }
+

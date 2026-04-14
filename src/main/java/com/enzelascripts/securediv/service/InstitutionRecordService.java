@@ -36,22 +36,22 @@ public class InstitutionRecordService {
 //  ============================================== Public Methods ==========================================
     @Transactional(timeout = 5)
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    public Map<String, Object> createInstitutionRecord(InstitutionRecordRequest dto) {
+    public String createInstitutionRecord(InstitutionRecordRequest dto) {
 
         InstitutionRecord newInstitutionRecord =
                 transferData(validateNotNull(dto), new InstitutionRecord());
 
         //create s3 key
         String specialName = dto.getInstitutionName() + "_" + LocalDate.now();
-        String folderName = "logos";
-        String extension = Objects.requireNonNull(dto.getLogoImage().getContentType()).split("/")[1];
+        String contentType = Objects.requireNonNull(dto.getLogoImage().getContentType());
+        String extension = contentType.split("/")[1];
 
-        String s3Key = folderName + "/" + specialName + "." + extension;
+        String s3Key = "logos/" + specialName + "." + extension;
 
         //upload the signature file to s3
         MultipartFile logoImage = dto.getLogoImage();
         byte[] fileByte = getFileBytes(logoImage);
-        s3Service.uploadLogo(fileByte, s3Key);
+        s3Service.uploadLogo(fileByte, s3Key, contentType);
 
         //update the institution record object
         newInstitutionRecord.setS3Key(s3Key);
@@ -72,20 +72,7 @@ public class InstitutionRecordService {
         //save the institution record to DB
         institutionRecordRepo.save(newInstitutionRecord);
 
-        //transfer the institution record object to a response object
-        InstitutionResponse response = transferData(newInstitutionRecord, new InstitutionResponse());
-
-        //build the base64 logo url
-        String logoUrl = convertToBase64ImageUrl(dto.getLogoImage());
-
-        //update the response object
-        response.setLogoUrl(logoUrl);
-
-
-        return Map.of(
-                "message", "Institution Record created successfully",
-                "data", response
-        );
+        return "Institution Record created successfully";
 
     }
 
