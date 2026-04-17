@@ -23,9 +23,6 @@ public abstract class DocumentRequest {
     @NotBlank(message = "Course studied is required")
     private String course;          // Geology
 
-    @NotBlank(message = "class of Degree this student graduated with is required")
-    private String classOfDegree;   // First-class Honors
-
     @NotNull(message = "Please provide the graduation date")
     @Past(message = "Graduation date must be in the past")
     private LocalDate graduationDate;

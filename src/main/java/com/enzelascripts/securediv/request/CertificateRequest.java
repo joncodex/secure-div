@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @Setter
 @ToString
 public class CertificateRequest extends DocumentRequest {
-
+    @NotBlank(message = "class of Degree this student graduated with is required")
+    private String classOfDegree;   // First-class Honors
 
 }

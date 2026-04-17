@@ -10,8 +10,13 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowire;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -34,15 +39,14 @@ import java.util.*;
 @Component
 @Slf4j
 public class Utility {
-/// ============================================ Fields ================================================================
+// ============================================ Fields ================================================================
     @Value("${base-url}")
     public static String BASE_URL;
     public static final int PRESIGNED_DURATION = 15;
     public static final String CERTIFICATE_VERIFICATION_URL = BASE_URL+"/api/v1/certificates/verify";
     public static final String TRANSCRIPT_VERIFICATION_URL = BASE_URL+"/api/v1/transcripts/verify";
 
-
-/// ========================================== public methods ==========================================================
+// ========================================== public methods ==========================================================
     public static byte[] getFileBytes(MultipartFile file){
         try {
             return file.getBytes();
@@ -206,7 +210,6 @@ public class Utility {
 
         return listOfAllFields;
     }
-
 
 
 

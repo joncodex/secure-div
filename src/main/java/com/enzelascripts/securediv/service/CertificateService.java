@@ -59,39 +59,26 @@ public class CertificateService {
 
         //create a certificate object
         validateNotNull(dto);
-        System.out.println("validate DTO: " + dto.getClass().toString());
-        System.out.println("Degree: " + dto.getDegree() +  " Course: " + dto.getCourse() + " GDATE: : " + dto.getGraduationDate());
         Certificate certificate = createCertificateObject(dto);
-        System.out.println("created certificate object");
-        System.out.println(certificate);
 
         //populate the HTML
         String html = getCertificateHTML(certificate);
-        System.out.println("html populate");
 
         //convert HTML to PDF bytes
         byte[] bytes = pdfService.generatePdf(html);
-        System.out.println("generate pdf");
 
         //get the file fingerprint, update the certificate object
         String fingerprint = getFileFingerprint(bytes);
         certificate.setSha256Hash(fingerprint);
-        System.out.println("document hash done: " + fingerprint);
 
         s3Service.uploadCertificate(bytes, certificate.getS3Key(), "application/pdf");
 
-        System.out.println("doc uploaded");
-
         //save the certificate object
-        System.out.println(certificate);
-        System.out.println("about to save");
         saveCertificate(certificate);
-        System.out.println("save certificate");
 
         //email to the student the download url
         EmailService.notifyStudent(certificate.getStudent());
 
-        System.out.println("return");
         return getCertificateResponseObject(certificate);
     }
 
@@ -231,9 +218,6 @@ public class CertificateService {
         String degree =    validateNotNull(dto.getDegree());
         String course =    validateNotNull(dto.getCourse());
 
-        System.out.println("inside create certificate obj");
-        System.out.println("Degree: " + dto.getDegree() +  " Course: " + dto.getCourse() + " GDATE: : " + dto.getGraduationDate());
-
         // get the actual student object, if exists
         Student student = studentRepo
                 .findStudentByStudentId(studentId)
@@ -248,10 +232,6 @@ public class CertificateService {
 
                 //transfer data from DTO to certificate
                 Certificate certificate = transferData(dto, new Certificate());
-
-                System.out.println("after transfer");
-                System.out.println("Degree: " + certificate.getDegree() +  " Course: " + certificate.getCourse() + " GDATE: : " + certificate.getGraduationDate());
-
 
                 //generate unique Certificate ID, update the certificate object
                 String documentNumber = generateDocumentNumber();

@@ -55,7 +55,6 @@ public class CourseResultSummary{
                 .map(s-> courseResultService.getCourseResultResponse(s))
                 .toList();
 
-        System.out.println(courseResultResponseList);
         return courseResultResponseList;
     }
 

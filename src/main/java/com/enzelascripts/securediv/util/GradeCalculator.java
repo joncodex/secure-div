@@ -37,12 +37,6 @@ public class GradeCalculator {
         Map.Entry<Integer, Grade> entry =
                 validateNotNull(gradingScale.floorEntry(score), "grade not found");
 
-        System.out.println("CGPA Scale: " + CGPA_SCALE);
-        System.out.println("Score: " + score);
-        System.out.println("Point: " + entry.getValue().point());
-        System.out.println("Grade: " + entry.getValue().letter());
-
-
         return entry.getValue().point();
 
     }
