@@ -16,12 +16,11 @@ import java.util.List;
 @Scope(scopeName = "prototype")
 @Getter
 public class CourseResultSummary{
+
     @Autowired
     private CourseResultRepo courseResultRepo;
     @Autowired
     private StudentRepo studentRepo;
-    @Autowired
-    private GradeCalculator gradeCalculator;
     @Autowired
     private CourseResultService courseResultService;
 
@@ -35,7 +34,7 @@ public class CourseResultSummary{
     private final int cgpaScale = GradeCalculator.CGPA_SCALE;
 
 
-    //  ======================================= constructor ==================================================
+    //  ======================================= instance method ==================================================
     public void getInstance(String studentId){
 
         this.courseResults = courseResultService.getCourseResultsByStudentId(studentId);
@@ -56,6 +55,7 @@ public class CourseResultSummary{
                 .map(s-> courseResultService.getCourseResultResponse(s))
                 .toList();
 
+        System.out.println(courseResultResponseList);
         return courseResultResponseList;
     }
 
@@ -90,8 +90,18 @@ public class CourseResultSummary{
 
     public String getClassOfDegree() {
 
-        classOfDegree = gradeCalculator.getClassOfDegree(getCgpa());
+        classOfDegree = getClassOfDegree(getCgpa());
         return classOfDegree;
+    }
+
+    public String getClassOfDegree(double cgpa) {
+        double percentage = (cgpa / cgpaScale) * 100;
+
+        if (percentage >= 70) return "First-Class Honours";
+        if (percentage >= 65) return "Second-Class Honours (Upper Division)";
+        if (percentage >= 50) return "Second-Class Honours (Lower Division)";
+        if (percentage >= 40) return "Third-Class Honours";
+        return "Fail";
     }
 
 

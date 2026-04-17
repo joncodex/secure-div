@@ -123,6 +123,7 @@ public class Utility {
         long randomNum = random.nextLong(1_000_000, 10_000_000);
 
         String alphabets = "QPWEALKMSNDBJVCUXRTYFGHZ";
+        char randomCharacter = alphabets.charAt(random.nextInt(alphabets.length()));
 
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -130,9 +131,8 @@ public class Utility {
                 initial4Letters.substring(0, 4).toUpperCase();
 
         stringBuilder.append(initial4Letters);
+        stringBuilder.append("-");
         stringBuilder.append(randomNum);
-
-        char randomCharacter = alphabets.charAt(random.nextInt(alphabets.length()));
         stringBuilder.append(randomCharacter);
 
         return stringBuilder.toString();

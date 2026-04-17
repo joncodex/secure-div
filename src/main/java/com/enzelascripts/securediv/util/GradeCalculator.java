@@ -1,6 +1,5 @@
 package com.enzelascripts.securediv.util;
 
-import com.enzelascripts.securediv.entity.CourseResult;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +14,7 @@ import static com.enzelascripts.securediv.util.Utility.validateNotNull;
 @Setter
 public class GradeCalculator {
 //  ============================================== Fields ==================================================
-    public static final int CGPA_SCALE = 7;
+    public static final int CGPA_SCALE = 4;
     private Map<Integer, GradingScale> scales = new HashMap<>();
 
 
@@ -28,6 +27,7 @@ public class GradeCalculator {
 
     public double calculateGradePoint(int score){
 
+        //validate score
         validateNotNull(score);
         if(score < 0 || score > 100) return 0;
 
@@ -37,36 +37,14 @@ public class GradeCalculator {
         Map.Entry<Integer, Grade> entry =
                 validateNotNull(gradingScale.floorEntry(score), "grade not found");
 
+        System.out.println("CGPA Scale: " + CGPA_SCALE);
+        System.out.println("Score: " + score);
+        System.out.println("Point: " + entry.getValue().point());
+        System.out.println("Grade: " + entry.getValue().letter());
+
+
         return entry.getValue().point();
 
-    }
-
-    public double calculateCGPA(List<CourseResult> courseResults){
-
-        double totalQualityPoints = 0;
-        int totalUnits = 0;
-
-        for (CourseResult courseResult : courseResults) {
-
-            double gradePoint = calculateGradePoint(courseResult.getScore());
-
-            totalQualityPoints += gradePoint * courseResult.getCourseUnit();
-            totalUnits += courseResult.getCourseUnit();
-        }
-
-        if (totalUnits == 0) return 0;
-
-        return Math.round((totalQualityPoints / totalUnits) * 100.0) / 100.0;
-    }
-
-    public String getClassOfDegree(double cgpa) {
-        double percentage = (cgpa / CGPA_SCALE) * 100;
-
-        if (percentage >= 70) return "First-Class Honours";
-        if (percentage >= 65) return "Second-Class Honours (Upper Division)";
-        if (percentage >= 50) return "Second-Class Honours (Lower Division)";
-        if (percentage >= 40) return "Third-Class Honours";
-        return "Fail";
     }
 
 //  ========================== helper methods ==================================================
@@ -87,7 +65,7 @@ public class GradeCalculator {
                 50, new Grade("C", 3.0),
                 45, new Grade("D", 2.0),
                 40, new Grade("E", 1.0),
-                0, new Grade("F", 0.0)
+                0,  new Grade("F", 0.0)
 
         ));
 
@@ -101,7 +79,7 @@ public class GradeCalculator {
                 60, new Grade("C", 3.0),
                 50, new Grade("D", 2.0),
                 40, new Grade("E", 1.0),
-                0, new Grade("F", 0.0)
+                0,  new Grade("F", 0.0)
         ));
     }
 

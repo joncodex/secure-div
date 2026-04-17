@@ -143,15 +143,15 @@
 
     <tbody>
     <!-- Example static rows (fallback/demo) -->
-    <tr>
-        <td>CSC101</td><td>Intro to CS</td><td>3</td><td>85</td> <td>4.0</td><td>12.0</td><td>First</td><td>2022</td>
-    </tr>
-    <tr>
-        <td>MTH101</td><td>Algebra</td><td>3</td><td>78</td> <td>3.3</td><td>9.9</td><td>First</td><td>2022</td>
-    </tr>
-    <tr>
-        <td>CSC102</td><td>Programming I</td><td>3</td><td>82</td> <td>3.0</td><td>9.0</td><td>Second</td><td>2022</td>
-    </tr>
+<!--    <tr>-->
+<!--        <td>CSC101</td><td>Intro to CS</td><td>3</td><td>85</td> <td>4.0</td><td>12.0</td><td>First</td><td>2022</td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td>MTH101</td><td>Algebra</td><td>3</td><td>78</td> <td>3.0</td><td>9.0</td><td>First</td><td>2022</td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <td>CSC102</td><td>Programming I</td><td>3</td><td>82</td> <td>3.0</td><td>9.0</td><td>Second</td><td>2022</td>-->
+<!--    </tr>-->
 
     <!-- Dynamic rows -->
     <tr th:each="course : ${resultSummary.courseResultResponseList}">
@@ -170,12 +170,17 @@
 
 <!-- SUMMARY -->
 <div class="section-title">Academic Summary</div>
-<p><strong>Total Credits:</strong> <span th:text="${resultSummary.totalCourseUnits}">0</span></p>
-<p><strong>Total Quality Points:</strong> <span th:text="${resultSummary.totalQualityPoints}">0</span></p>
-<p><strong>Cumulative GPA:</strong> <span th:text="${resultSummary.cgpa}">0.00</span></p>
+<p><strong>Total Credits:</strong> <span th:text="${resultSummary.totalCourseUnits}">0.000</span></p>
+<p><strong>Total Quality Points:</strong> <span th:text="${resultSummary.totalQualityPoints}">0.000</span></p>
+<p><strong>Cumulative GPA:</strong> <span th:text="${resultSummary.cgpa}">0.000</span></p>
+<p><strong>CGPA Scale:</strong> <span th:text="${resultSummary.cgpaScale}">0.000</span></p>
+<p><strong>Class of Degree:</strong> <span th:text="${resultSummary.classOfDegree}">First Class</span></p>
+
+
+
+
 
 <!-- GPA SCALE -->
-<div class="section-title" th:text="${resultSummary.cgpaScale}" >Grading System (4.0 Scale)</div>
 <table>
     <thead>
     <tr>
@@ -193,12 +198,6 @@
     </tbody>
 </table>
 
-<!-- QR -->
-<div class="qr-section">
-    <canvas id="qrcode"></canvas>
-    <p>Scan to verify this transcript</p>
-</div>
-
 <!-- SIGNATORIES -->
 <div class="signatories" >
     <div class="sign-box" th:each="sig : ${transcript.signatory}">
@@ -208,24 +207,17 @@
         <div class="sign-line"></div>
         <span th:text="${sig.position}">Registrar</span>
         <p th:text="${sig.name}">Registrar</p>
-
     </div>
 </div>
 
-
-<div class="signatures" th:each="signatory : ${certificate.signatory}">
-    <div class="sig-block" th:if="${signatory != null}">
-        <div class="sig-cursive" >
-            <img class="signature-img" th:src="${signatory.signatureUrl}" alt="Signature" />
-        </div>
-        <div class="sig-line"></div>
-        <div class="sig-name" th:text="${signatory.name}">Ralph Barnett</div>
-        <div class="sig-title" th:text="${signatory.position}" >President of University</div>
-    </div>
-
+<!-- QR -->
+<div class="qr-section">
+    <!--    <canvas id="qrcode"></canvas>-->
+    <img th:src="${transcript.qrCode}" alt="QRCODE" />
+    <p>Scan to verify this transcript</p>
 </div>
 
-<img th:src="${transcript.qrCode}" alt="QRCODE" />
+
 
 </body>
 </html>

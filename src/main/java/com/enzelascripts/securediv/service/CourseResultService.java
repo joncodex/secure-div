@@ -102,7 +102,7 @@ public CourseResultResponse getCourseResultResponse(CourseResult result){
         //update the studentId, grade point and quality point
         response.setStudentId(result.getStudent().getStudentId());
         response.setGradePoint(getGradePoint(result.getScore()));
-        response.setQualityPoint((response.getGradePoint() * response.getCourseUnit()));
+        response.setQualityPoint((response.getGradePoint() * result.getCourseUnit()));
         
         return response;
         
@@ -128,9 +128,5 @@ public CourseResultResponse getCourseResultResponse(CourseResult result){
                         new ResourceNotFoundException(
                                 "the course result with course code: " + courseCode + " was not found"));
     }
-
-
-//  ======================================= inner classes ==================================================
-
 
 }
