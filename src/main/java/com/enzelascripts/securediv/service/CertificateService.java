@@ -200,6 +200,13 @@ public class CertificateService {
                     "Contact the authority for more details";
         }
 
+        //check file authenticity
+        byte[] fileHash = s3Service.getDocumentAsByte(cert.getS3Key());
+        if(isFileCorrupted(fileHash, cert.getSha256Hash())) {
+            return "the transcript is corrupted and therefore can not be downloaded at this moment. " +
+                    "Contact the authority for more details";
+        }
+
         //register the request to AccessLog
         accessLogService.logAccess(dto, "DOWNLOAD");
 

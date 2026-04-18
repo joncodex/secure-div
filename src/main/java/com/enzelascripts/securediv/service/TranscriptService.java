@@ -207,6 +207,13 @@ public class TranscriptService {
                     "Contact the authority for more details";
         }
 
+        //check file authenticity
+        byte[] fileHash = s3Service.getDocumentAsByte(transcript.getS3Key());
+        if(isFileCorrupted(fileHash, transcript.getSha256Hash())) {
+            return "the transcript is corrupted and therefore can not be downloaded at this moment. " +
+                    "Contact the authority for more details";
+        }
+
         //register the request to AccessLog
         accessLogService.logAccess(dto, "DOWNLOAD");
 
