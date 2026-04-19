@@ -34,6 +34,7 @@ import static com.enzelascripts.securediv.util.Utility.validateNotNull;
 public class CertificateService {
 // =========================================== fields ==================================================================
     private final String verificationUrl = Utility.CERTIFICATE_VERIFICATION_URL;
+    private final String webhookUrl = Utility.WEBHOOKURL;
 
     @Autowired
     private S3Service s3Service;
@@ -51,9 +52,11 @@ public class CertificateService {
     private PdfService pdfService;
     @Autowired
     private AccessLogService accessLogService;
+    @Autowired
+    private WebhookService webhookService;
 
 
-// ============================================ public methods =========================================================
+    // ============================================ public methods =========================================================
     @Transactional(timeout = 9)
     public CertificateResponse createCertificate(CertificateRequest dto) {
 
@@ -77,6 +80,7 @@ public class CertificateService {
         saveCertificate(certificate);
 
         //email to the student the download url
+        webhookService.sendWebhook(webhookUrl, certificate);
         EmailService.notifyStudent(certificate.getStudent());
 
         return getCertificateResponseObject(certificate);

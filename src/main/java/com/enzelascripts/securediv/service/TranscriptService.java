@@ -32,7 +32,9 @@ import static com.enzelascripts.securediv.util.Utility.validateNotNull;
 public class TranscriptService {
 // =========================================== fields ==================================================================
 
-    private final String verificationUrl = Utility.CERTIFICATE_VERIFICATION_URL;
+    private final String verificationUrl = Utility.TRANSCRIPT_VERIFICATION_URL;
+    private final String webhookUrl = Utility.WEBHOOKURL;
+
 
     @Autowired
     private S3Service s3Service;
@@ -52,8 +54,10 @@ public class TranscriptService {
     private AccessLogService accessLogService;
     @Autowired
     private CourseResultSummary resultSummary;
+    @Autowired
+    private WebhookService webhookService;
 
-// ============================================ public methods =========================================================
+    // ============================================ public methods =========================================================
     @Transactional(timeout = 9)
     public TranscriptResponse createTranscript(TranscriptRequest dto) {
 
@@ -77,6 +81,7 @@ public class TranscriptService {
         saveTranscript(transcript);
 
         //email to the student the download url
+        webhookService.sendWebhook(webhookUrl, transcript);
         EmailService.notifyStudent(transcript.getStudent());
 
         return getTranscriptResponseObject(transcript);
