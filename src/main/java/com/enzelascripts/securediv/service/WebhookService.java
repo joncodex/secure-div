@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -25,6 +26,12 @@ public class WebhookService {
     @Value("${webhook-secret}")
     private String secret;
 
+    @Value("${webhook-url}")
+    private String webhookUrl;
+
+    public <T extends Document> void sendWebhook(T document){
+        sendWebhook(webhookUrl, document);
+    }
 
     public <T extends Document> void sendWebhook(String url, T document){
         WebhookPayload payload = WebhookPayload.builder()
@@ -77,6 +84,11 @@ public class WebhookService {
             throw new RuntimeException("webhook failed", e);
         }
 
+    }
+
+    public boolean verifySignature(String payload, String incomingSignature) {
+        String expected = signPayload(payload);
+        return MessageDigest.isEqual(expected.getBytes(), incomingSignature.getBytes());
     }
 
     private String signPayload(String payload){

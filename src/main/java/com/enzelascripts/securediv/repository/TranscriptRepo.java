@@ -13,4 +13,6 @@ public interface TranscriptRepo extends JpaRepository<Transcript, Long> {
     boolean existsByStudent_IdAndDegreeAndCourse(Long studentId, String degree, String course);
 
     boolean existsByDocumentNumber(String documentNumber);
+
+    long countByIsRevoked(boolean isRevoked);
 }

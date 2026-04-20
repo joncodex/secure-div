@@ -16,4 +16,6 @@ public interface CertificateRepo extends JpaRepository<Certificate, Long> {
 
     Optional<Certificate> getCertificateByDocumentNumber(String documentNumber);
 
+    long countByIsRevoked(boolean isRevoked);
+
 }

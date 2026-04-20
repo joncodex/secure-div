@@ -29,9 +29,6 @@ public class Utility {
     @Value("${base-url}")
     public static String BASE_URL;
 
-    @Value("${webhook-url}")
-    public static String WEBHOOKURL;
-
     public static final int PRESIGNED_DURATION = 15;
     public static final String CERTIFICATE_VERIFICATION_URL = BASE_URL+"/api/v1/certificates/verify";
     public static final String TRANSCRIPT_VERIFICATION_URL = BASE_URL+"/api/v1/transcripts/verify";
